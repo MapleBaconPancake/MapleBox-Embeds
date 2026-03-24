@@ -45,6 +45,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      gap: 12px;
     }
 
     .title {
@@ -62,7 +63,7 @@
     }
 
     .badge {
-      margin-top: 16px;
+      margin-top: 10px;
       padding: 12px 14px;
       border-radius: 14px;
       border: 1px solid var(--border);
@@ -77,16 +78,42 @@
     .badge.bad { color: var(--bad); }
 
     .body {
-      margin-top: 12px;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.45;
       overflow: auto;
       flex: 1;
+      min-height: 0;
+    }
+
+    .alert-item {
+      background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-top: 10px;
+    }
+
+    .alert-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .alert-summary {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .alert-updated {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
     }
 
     .links {
-      margin-top: 14px;
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -102,26 +129,6 @@
       background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
       border: 1px solid var(--border);
     }
-
-    @media (max-width: 420px) {
-      .card {
-        padding: 12px;
-        border-radius: 16px;
-      }
-
-      .title {
-        font-size: 17px;
-      }
-
-      .badge {
-        font-size: 14px;
-        padding: 11px 12px;
-      }
-
-      .body {
-        font-size: 12px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -129,10 +136,10 @@
     <div>
       <div class="title">Greater Victoria Alerts</div>
       <div class="subtitle">Environment Canada</div>
-
       <div class="badge" id="status">Checking alerts…</div>
-      <div class="body" id="body">Loading…</div>
     </div>
+
+    <div class="body" id="body">Loading…</div>
 
     <div class="links">
       <a href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">Open official alerts</a>
@@ -141,51 +148,50 @@
   </div>
 
   <script>
-    const alertPageUrl = "https://weather.gc.ca/warnings/report_e.html?bc43=";
+    const ALERTS_API = "https://victoria-alerts.j-r-moroschan.workers.dev";
 
     async function loadAlerts() {
       const statusEl = document.getElementById("status");
       const bodyEl = document.getElementById("body");
 
       try {
-        const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(alertPageUrl);
-        const res = await fetch(proxyUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed");
+        const res = await fetch(ALERTS_API, { cache: "no-store" });
+        if (!res.ok) throw new Error("API request failed");
 
-        const html = await res.text();
-        const text = html
-          .replace(/<script[\s\S]*?<\/script>/gi, " ")
-          .replace(/<style[\s\S]*?<\/style>/gi, " ")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.status || "Feed parse failed");
 
-        const noAlerts = /No alerts in effect/i.test(text);
-        const red = /Red Warning/i.test(text);
-        const yellow = /Yellow Warning/i.test(text);
-        const anyAlert = /Warning|Watch|Advisory|Statement/i.test(text);
-
-        if (noAlerts) {
+        if (data.noAlerts) {
           statusEl.textContent = "No alerts in effect";
           statusEl.className = "badge ok";
           bodyEl.textContent = "Environment Canada currently shows no alerts in effect for Greater Victoria.";
-        } else {
-          let label = "Alert in effect";
-          let cls = "warn";
-
-          if (red) { label = "Red warning in effect"; cls = "bad"; }
-          else if (yellow) { label = "Yellow warning in effect"; cls = "warn"; }
-          else if (anyAlert) { label = "Weather alert in effect"; cls = "warn"; }
-
-          statusEl.textContent = label;
-          statusEl.className = `badge ${cls}`;
-          bodyEl.textContent = text.substring(0, 900) + (text.length > 900 ? "…" : "");
+          return;
         }
-      } catch {
-        statusEl.textContent = "Could not auto-read alert summary";
+
+        statusEl.textContent = `${data.count} active alert${data.count === 1 ? "" : "s"}`;
         statusEl.className = "badge warn";
-        bodyEl.textContent = "Use the official alerts button below if the summary box cannot be read right now.";
+
+        bodyEl.innerHTML = data.alerts.map(alert => `
+          <div class="alert-item">
+            <div class="alert-title">${escapeHtml(alert.title || "Weather alert")}</div>
+            <div class="alert-summary">${escapeHtml(alert.summary || "See official alert for full details.")}</div>
+            ${alert.updated ? `<div class="alert-updated">Updated: ${escapeHtml(alert.updated)}</div>` : ""}
+          </div>
+        `).join("");
+      } catch (err) {
+        statusEl.textContent = "Could not load alerts feed";
+        statusEl.className = "badge warn";
+        bodyEl.textContent = "The official feed could not be loaded right now. Use the official alerts button below.";
       }
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
     loadAlerts();
