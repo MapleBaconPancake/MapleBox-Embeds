@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Langford Weather</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    .weather-wrap {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .weatherwidget-io {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-wrap">
+    <a class="weatherwidget-io"
+       href="https://forecast7.com/en/48d45n123d50/langford/"
+       data-label_1="LANGFORD"
+       data-label_2="BC"
+       data-font="Arial"
+       data-icons="Climacons Animated"
+       data-mode="Current"
+       data-theme="pure">
+       LANGFORD BC
+    </a>
+  </div>
+
+  <script>
+    !function(d,s,id){
+      var js,fjs=d.getElementsByTagName(s)[0];
+      if(!d.getElementById(id)){
+        js=d.createElement(s);
+        js.id=id;
+        js.src='https://weatherwidget.io/js/widget.min.js';
+        fjs.parentNode.insertBefore(js,fjs);
+      }
+    }(document,'script','weatherwidget-io-js');
+  </script>
+</body>
+</html>
