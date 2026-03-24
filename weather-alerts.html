@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Greater Victoria Alerts</title>
+  <style>
+    :root{
+      --panel: rgba(15,18,24,.82);
+      --panel2: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.12);
+      --text: #f4f7fb;
+      --muted: rgba(244,247,251,.72);
+      --good: #69db7c;
+      --warn: #ffd43b;
+      --bad: #ff8787;
+      --shadow: 0 10px 30px rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; width: 100%; height: 100%;
+      background: transparent; color: var(--text);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      overflow: hidden;
+    }
+    body { padding: 10px; }
+    .card {
+      height: calc(100vh - 20px);
+      background: rgba(15,18,24,.82);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .title { font-size: 22px; font-weight: 800; }
+    .subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .badge {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--panel2);
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .badge.ok { color: var(--good); }
+    .badge.warn { color: var(--warn); }
+    .badge.bad { color: var(--bad); }
+    .body {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: auto;
+      flex: 1;
+    }
+    .links {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    a {
+      text-decoration: none;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(125,211,252,.12);
+      border: 1px solid rgba(125,211,252,.24);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div>
+      <div class="title">Greater Victoria Alerts</div>
+      <div class="subtitle">Environment Canada</div>
+
+      <div class="badge" id="status">Checking alerts…</div>
+      <div class="body" id="body">Loading…</div>
+    </div>
+
+    <div class="links">
+      <a href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">Open official alerts</a>
+      <a href="https://weather.gc.ca/en/location/index.html?coords=48.433%2C-123.362" target="_blank" rel="noopener noreferrer">Open forecast</a>
+    </div>
+  </div>
+
+  <script>
+    const alertPageUrl = "https://weather.gc.ca/warnings/report_e.html?bc43=";
+
+    async function loadAlerts() {
+      const statusEl = document.getElementById("status");
+      const bodyEl = document.getElementById("body");
+
+      try {
+        const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(alertPageUrl);
+        const res = await fetch(proxyUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed");
+
+        const html = await res.text();
+        const text = html
+          .replace(/<script[\s\S]*?<\/script>/gi, " ")
+          .replace(/<style[\s\S]*?<\/style>/gi, " ")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        const noAlerts = /No alerts in effect/i.test(text);
+        const red = /Red Warning/i.test(text);
+        const yellow = /Yellow Warning/i.test(text);
+        const anyAlert = /Warning|Watch|Advisory|Statement/i.test(text);
+
+        if (noAlerts) {
+          statusEl.textContent = "No alerts in effect";
+          statusEl.className = "badge ok";
+          bodyEl.textContent = "Environment Canada currently shows no alerts in effect for Greater Victoria.";
+        } else {
+          let label = "Alert in effect";
+          let cls = "warn";
+
+          if (red) { label = "Red warning in effect"; cls = "bad"; }
+          else if (yellow) { label = "Yellow warning in effect"; cls = "warn"; }
+          else if (anyAlert) { label = "Weather alert in effect"; cls = "warn"; }
+
+          statusEl.textContent = label;
+          statusEl.className = `badge ${cls}`;
+          bodyEl.textContent = text.substring(0, 900) + (text.length > 900 ? "…" : "");
+        }
+      } catch {
+        statusEl.textContent = "Could not auto-read alert summary";
+        statusEl.className = "badge warn";
+        bodyEl.textContent = "Use the official alerts button below if the summary box cannot be read right now.";
+      }
+    }
+
+    loadAlerts();
+    setInterval(loadAlerts, 10 * 60 * 1000);
+  </script>
+</body>
+</html>
