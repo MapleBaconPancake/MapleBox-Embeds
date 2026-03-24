@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Victoria Forecast</title>
+  <style>
+    :root{
+      --panel: rgba(15,18,24,.82);
+      --panel2: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.12);
+      --text: #f4f7fb;
+      --muted: rgba(244,247,251,.72);
+      --shadow: 0 10px 30px rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; width: 100%; height: 100%;
+      background: transparent; color: var(--text);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      overflow: hidden;
+    }
+    body { padding: 10px; }
+    .card {
+      height: calc(100vh - 20px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 16px;
+    }
+    .title { font-size: 22px; font-weight: 800; }
+    .subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 14px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      height: calc(100% - 60px);
+    }
+    .day {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+    }
+    .dow { font-size: 13px; color: var(--muted); font-weight: 700; }
+    .cond { font-size: 13px; line-height: 1.3; }
+    .temps { font-size: 22px; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Greater Victoria</div>
+    <div class="subtitle">4-day forecast</div>
+    <div class="grid" id="forecastGrid"></div>
+  </div>
+
+  <script>
+    const LAT = 48.4284;
+    const LON = -123.3656;
+
+    const url =
+      `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=4`;
+
+    function codeText(code) {
+      const map = {
+        0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",
+        45:"Fog",48:"Rime fog",51:"Light drizzle",53:"Drizzle",55:"Dense drizzle",
+        61:"Light rain",63:"Rain",65:"Heavy rain",71:"Light snow",73:"Snow",75:"Heavy snow",
+        80:"Rain showers",81:"Rain showers",82:"Heavy showers",95:"Thunderstorm"
+      };
+      return map[code] || "Unknown";
+    }
+
+    function fmtDay(dateStr) {
+      return new Date(dateStr + "T12:00:00").toLocaleDateString("en-CA", { weekday: "short" });
+    }
+
+    async function loadForecast() {
+      const res = await fetch(url, { cache: "no-store" });
+      const data = await res.json();
+      const grid = document.getElementById("forecastGrid");
+      grid.innerHTML = "";
+
+      data.daily.time.forEach((day, i) => {
+        const el = document.createElement("div");
+        el.className = "day";
+        el.innerHTML = `
+          <div class="dow">${fmtDay(day)}</div>
+          <div class="cond">${codeText(data.daily.weather_code[i])}</div>
+          <div class="temps">${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°</div>
+        `;
+        grid.appendChild(el);
+      });
+    }
+
+    loadForecast();
+    setInterval(loadForecast, 30 * 60 * 1000);
+  </script>
+</body>
+</html>
