@@ -4,15 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Victoria Forecast</title>
+
   <style>
     :root{
-      --panel: rgba(3, 10, 28, 0.82);
-      --panel2: rgba(10, 20, 46, 0.72);
-      --border: rgba(82, 140, 255, 0.18);
-      --text: #eef4ff;
-      --muted: rgba(210, 225, 255, 0.72);
-      --accent: #39c6ff;
-      --shadow: 0 0 0 1px rgba(70,120,255,.08), 0 10px 30px rgba(0,0,0,.22);
+      --bg: #040b1f;
+      --card: #07122b;
+      --panel: #081630;
+      --panel-2: #091936;
+      --border: rgba(80, 145, 255, 0.22);
+      --text: #f2f6ff;
+      --muted: rgba(223, 232, 255, 0.76);
     }
 
     * { box-sizing: border-box; }
@@ -23,7 +24,7 @@
       height: 100%;
       background: transparent !important;
       color: var(--text);
-      font-family: Inter, Segoe UI, Arial, sans-serif;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
       overflow: hidden;
     }
 
@@ -34,272 +35,302 @@
     .card {
       width: 100%;
       height: 100vh;
-      background: linear-gradient(180deg, rgba(8,18,44,.88), rgba(3,10,28,.86));
+      border-radius: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
+        linear-gradient(180deg, #07122b, #040b1f);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
+      box-shadow: none;
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+      overflow: hidden;
+      contain: layout paint;
+    }
+
+    .top {
+      min-width: 0;
     }
 
     .title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 800;
       line-height: 1.05;
-      margin-bottom: 1px;
+      margin: 0 0 3px;
       color: var(--text);
     }
 
-    .subtitle {
-      font-size: 10px;
+    .subtitle,
+    .updated {
+      font-size: 11px;
       color: var(--muted);
       line-height: 1.15;
-      margin-bottom: 8px;
     }
 
-    .grid {
+    .subtitle {
+      margin-bottom: 3px;
+    }
+
+    .forecast-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      flex: 1;
       min-height: 0;
     }
 
-    .day {
-      background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
+    .forecast-day {
+      border-radius: 14px;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 8px 6px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      padding: 10px 6px 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 0;
+      min-width: 0;
       overflow: hidden;
     }
 
-    .dow {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-bottom: 6px;
-      line-height: 1.05;
+    .forecast-name {
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 7px;
+      text-align: center;
+      white-space: nowrap;
     }
 
-    .icon-wrap {
+    .forecast-icon-wrap {
       width: 32px;
       height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 6px;
+      margin-bottom: 7px;
       flex-shrink: 0;
     }
 
     .forecast-icon {
-      width: 32px;
-      height: 32px;
-      display: block;
+      width: 30px;
+      height: 30px;
       object-fit: contain;
+      display: block;
     }
 
-    .cond {
+    .forecast-cond {
       font-size: 11px;
-      line-height: 1.15;
-      color: var(--text);
+      line-height: 1.08;
+      color: var(--muted);
       text-align: center;
-      min-height: 26px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 6px;
+      min-height: 28px;
+      max-height: 28px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      margin-bottom: 8px;
     }
 
-    .temps {
-      font-size: 14px;
+    .forecast-temps {
+      margin-top: auto;
+      font-size: 15px;
       font-weight: 800;
-      line-height: 1.1;
+      line-height: 1;
       color: var(--text);
       text-align: center;
       white-space: nowrap;
-      margin-top: auto;
     }
 
     @media (max-width: 420px) {
       .card {
-        padding: 8px;
-        border-radius: 16px;
+        padding: 10px;
+        gap: 8px;
+        border-radius: 0;
       }
 
       .title {
-        font-size: 15px;
+        font-size: 17px;
       }
 
-      .subtitle {
-        font-size: 9px;
-        margin-bottom: 7px;
+      .forecast-day {
+        padding: 8px 5px 7px;
       }
 
-      .grid {
-        gap: 6px;
+      .forecast-name {
+        font-size: 12px;
       }
 
-      .day {
-        padding: 7px 5px;
-        border-radius: 10px;
+      .forecast-cond {
+        font-size: 10px;
+        min-height: 24px;
+        max-height: 24px;
       }
 
-      .dow {
-        font-size: 11px;
-        margin-bottom: 5px;
+      .forecast-temps {
+        font-size: 13px;
       }
 
-      .icon-wrap {
-        width: 28px;
-        height: 28px;
-        margin-bottom: 5px;
+      .forecast-icon-wrap {
+        width: 26px;
+        height: 26px;
       }
 
       .forecast-icon {
-        width: 28px;
-        height: 28px;
-      }
-
-      .cond {
-        font-size: 10px;
-        min-height: 22px;
-        margin-bottom: 5px;
-      }
-
-      .temps {
-        font-size: 13px;
+        width: 24px;
+        height: 24px;
       }
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="title">Greater Victoria</div>
-    <div class="subtitle">4-day forecast</div>
-    <div class="grid" id="forecastGrid"></div>
+    <div class="top">
+      <div class="title">Greater Victoria</div>
+      <div class="subtitle">4-day forecast</div>
+      <div class="updated" id="updated">Loading…</div>
+    </div>
+
+    <div class="forecast-grid">
+      <div class="forecast-day">
+        <div class="forecast-name" data-dow>--</div>
+        <div class="forecast-icon-wrap">
+          <img class="forecast-icon" data-icon alt="Forecast icon" />
+        </div>
+        <div class="forecast-cond" data-cond>Loading…</div>
+        <div class="forecast-temps" data-temps>--° / --°</div>
+      </div>
+
+      <div class="forecast-day">
+        <div class="forecast-name" data-dow>--</div>
+        <div class="forecast-icon-wrap">
+          <img class="forecast-icon" data-icon alt="Forecast icon" />
+        </div>
+        <div class="forecast-cond" data-cond>Loading…</div>
+        <div class="forecast-temps" data-temps>--° / --°</div>
+      </div>
+
+      <div class="forecast-day">
+        <div class="forecast-name" data-dow>--</div>
+        <div class="forecast-icon-wrap">
+          <img class="forecast-icon" data-icon alt="Forecast icon" />
+        </div>
+        <div class="forecast-cond" data-cond>Loading…</div>
+        <div class="forecast-temps" data-temps>--° / --°</div>
+      </div>
+
+      <div class="forecast-day">
+        <div class="forecast-name" data-dow>--</div>
+        <div class="forecast-icon-wrap">
+          <img class="forecast-icon" data-icon alt="Forecast icon" />
+        </div>
+        <div class="forecast-cond" data-cond>Loading…</div>
+        <div class="forecast-temps" data-temps>--° / --°</div>
+      </div>
+    </div>
   </div>
 
   <script>
     const LAT = 48.4284;
     const LON = -123.3656;
 
-    const url =
+    const API_URL =
       `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
       `&timezone=auto&forecast_days=4`;
 
     const ICON_BASE = "https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/";
-    const FALLBACK_ICON = "partly-cloudy-day.svg";
+    const FORECAST_FALLBACK = "partly-cloudy-day.svg";
 
     function codeText(code) {
-      const map = {
-        0: "Clear sky",
-        1: "Mainly clear",
-        2: "Partly cloudy",
-        3: "Overcast",
-        45: "Fog",
-        48: "Rime fog",
-        51: "Light drizzle",
-        53: "Drizzle",
-        55: "Dense drizzle",
-        56: "Freezing drizzle",
-        57: "Dense freezing drizzle",
-        61: "Light rain",
-        63: "Rain",
-        65: "Heavy rain",
-        66: "Freezing rain",
-        67: "Heavy freezing rain",
-        71: "Light snow",
-        73: "Snow",
-        75: "Heavy snow",
-        77: "Snow grains",
-        80: "Rain showers",
-        81: "Rain showers",
-        82: "Heavy showers",
-        85: "Snow showers",
-        86: "Heavy snow showers",
-        95: "Thunderstorm",
-        96: "Thunderstorm with hail",
-        99: "Severe thunderstorm with hail"
-      };
-      return map[code] || "Unknown";
-    }
-
-    function mapWeatherCodeToIcon(code) {
-      if (code === 0) return "clear-day.svg";
-      if (code === 1) return "partly-cloudy-day.svg";
-      if (code === 2) return "partly-cloudy-day.svg";
-      if (code === 3) return "overcast.svg";
-
-      if (code === 45 || code === 48) return "fog.svg";
-
-      if ([51, 53].includes(code)) return "drizzle.svg";
-      if ([55].includes(code)) return "extreme-drizzle.svg";
-      if ([56, 57].includes(code)) return "sleet.svg";
-
-      if ([61, 63].includes(code)) return "rain.svg";
-      if ([65].includes(code)) return "extreme-rain.svg";
-      if ([66, 67].includes(code)) return "sleet.svg";
-
-      if ([71, 73].includes(code)) return "snow.svg";
-      if ([75].includes(code)) return "extreme-snow.svg";
-      if ([77].includes(code)) return "snowflake.svg";
-
-      if ([80, 81].includes(code)) return "showers.svg";
-      if ([82].includes(code)) return "extreme-showers.svg";
-
-      if ([85, 86].includes(code)) return "snow.svg";
-
-      if ([95].includes(code)) return "thunderstorms.svg";
-      if ([96, 99].includes(code)) return "severe-thunderstorms.svg";
-
-      return FALLBACK_ICON;
+      if (code === 0) return "Clear";
+      if (code === 1) return "Mainly clear";
+      if (code === 2) return "Partly cloudy";
+      if (code === 3) return "Overcast";
+      if (code === 45 || code === 48) return "Fog";
+      if ([51, 53, 55].includes(code)) return "Drizzle";
+      if ([56, 57].includes(code)) return "Freezing drizzle";
+      if ([61, 63, 65].includes(code)) return "Rain";
+      if ([66, 67].includes(code)) return "Freezing rain";
+      if ([71, 73, 75, 77].includes(code)) return "Snow";
+      if ([80, 81, 82].includes(code)) return "Showers";
+      if ([85, 86].includes(code)) return "Snow showers";
+      if ([95, 96, 99].includes(code)) return "Thunderstorm";
+      return "Conditions unavailable";
     }
 
     function fmtDay(dateStr) {
-      return new Date(dateStr + "T12:00:00").toLocaleDateString("en-CA", { weekday: "short" });
-    }
-
-    async function loadForecast() {
-      const res = await fetch(url, { cache: "no-store" });
-      const data = await res.json();
-      const grid = document.getElementById("forecastGrid");
-      grid.innerHTML = "";
-
-      data.daily.time.forEach((day, i) => {
-        const code = data.daily.weather_code[i];
-        const iconFile = mapWeatherCodeToIcon(code);
-
-        const el = document.createElement("div");
-        el.className = "day";
-        el.innerHTML = `
-          <div class="dow">${fmtDay(day)}</div>
-          <div class="icon-wrap">
-            <img class="forecast-icon" src="${ICON_BASE + iconFile}" alt="${codeText(code)}" />
-          </div>
-          <div class="cond">${codeText(code)}</div>
-          <div class="temps">${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°</div>
-        `;
-
-        const img = el.querySelector(".forecast-icon");
-        img.onerror = function () {
-          this.onerror = null;
-          this.src = ICON_BASE + FALLBACK_ICON;
-        };
-
-        grid.appendChild(el);
+      return new Date(dateStr + "T12:00:00").toLocaleDateString("en-CA", {
+        weekday: "short"
       });
     }
 
+    function forecastIconFile(code) {
+      if (code === 0) return "clear-day.svg";
+      if (code === 1 || code === 2) return "partly-cloudy-day.svg";
+      if (code === 3) return "overcast.svg";
+      if (code === 45 || code === 48) return "fog.svg";
+      if ([51, 53].includes(code)) return "drizzle.svg";
+      if ([55].includes(code)) return "extreme-drizzle.svg";
+      if ([56, 57].includes(code)) return "sleet.svg";
+      if ([61, 63].includes(code)) return "rain.svg";
+      if ([65].includes(code)) return "extreme-rain.svg";
+      if ([66, 67].includes(code)) return "sleet.svg";
+      if ([71, 73].includes(code)) return "snow.svg";
+      if ([75].includes(code)) return "extreme-snow.svg";
+      if ([77].includes(code)) return "snowflake.svg";
+      if ([80, 81].includes(code)) return "showers.svg";
+      if ([82].includes(code)) return "extreme-showers.svg";
+      if ([85, 86].includes(code)) return "snow.svg";
+      if ([95].includes(code)) return "thunderstorms.svg";
+      if ([96, 99].includes(code)) return "severe-thunderstorms.svg";
+      return FORECAST_FALLBACK;
+    }
+
+    function setImgWithFallback(img, file, fallback) {
+      img.onerror = function () {
+        this.onerror = null;
+        this.src = ICON_BASE + fallback;
+      };
+      img.src = ICON_BASE + file;
+    }
+
+    const forecastCards = Array.from(document.querySelectorAll(".forecast-day")).map(card => ({
+      dow: card.querySelector("[data-dow]"),
+      icon: card.querySelector("[data-icon]"),
+      cond: card.querySelector("[data-cond]"),
+      temps: card.querySelector("[data-temps]")
+    }));
+
+    async function loadForecast() {
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+
+        for (let i = 0; i < 4; i++) {
+          const code = data.daily.weather_code[i];
+          const card = forecastCards[i];
+
+          card.dow.textContent = fmtDay(data.daily.time[i]);
+          card.cond.textContent = codeText(code);
+          card.temps.textContent =
+            `${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°`;
+
+          setImgWithFallback(card.icon, forecastIconFile(code), FORECAST_FALLBACK);
+        }
+
+        document.getElementById("updated").textContent =
+          `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+      } catch (err) {
+        document.getElementById("updated").textContent = "Forecast update failed";
+        console.error("Forecast widget error:", err);
+      }
+    }
+
     loadForecast();
-    setInterval(loadForecast, 30 * 60 * 1000);
+    setInterval(loadForecast, 10 * 60 * 1000);
   </script>
 </body>
 </html>
