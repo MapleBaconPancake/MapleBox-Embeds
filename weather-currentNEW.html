@@ -205,7 +205,7 @@
       </div>
 
       <div class="icon-wrap">
-        <img id="weatherIcon" alt="Current weather icon" />
+        <img id="weatherIcon" alt="Current weather" />
       </div>
     </div>
 
@@ -247,6 +247,8 @@
       `&timezone=auto&wind_speed_unit=kmh`;
 
     const ICON_BASE = "https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/";
+    const FALLBACK_DAY = "partly-cloudy-day.svg";
+    const FALLBACK_NIGHT = "partly-cloudy-night.svg";
 
     function codeText(code) {
       const map = {
@@ -289,7 +291,7 @@
 
     function mapWeatherCodeToIcon(code, isDay) {
       if (code === 0) return isDay ? "clear-day.svg" : "clear-night.svg";
-      if (code === 1) return isDay ? "mostly-clear-day.svg" : "mostly-clear-night.svg";
+      if (code === 1) return isDay ? "partly-cloudy-day.svg" : "partly-cloudy-night.svg";
       if (code === 2) return isDay ? "partly-cloudy-day.svg" : "partly-cloudy-night.svg";
       if (code === 3) return "overcast.svg";
 
@@ -315,12 +317,19 @@
       if ([95].includes(code)) return "thunderstorms.svg";
       if ([96, 99].includes(code)) return "severe-thunderstorms.svg";
 
-      return isDay ? "partly-cloudy-day.svg" : "partly-cloudy-night.svg";
+      return isDay ? FALLBACK_DAY : FALLBACK_NIGHT;
     }
 
     function setAnimatedIcon(weatherCode, isDay) {
       const iconFile = mapWeatherCodeToIcon(weatherCode, isDay);
-      document.getElementById("weatherIcon").src = ICON_BASE + iconFile;
+      const img = document.getElementById("weatherIcon");
+
+      img.onerror = function () {
+        this.onerror = null;
+        this.src = ICON_BASE + (isDay ? FALLBACK_DAY : FALLBACK_NIGHT);
+      };
+
+      img.src = ICON_BASE + iconFile;
     }
 
     async function loadWeather() {
