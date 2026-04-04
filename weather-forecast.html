@@ -39,30 +39,30 @@
       border-radius: 18px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
-      padding: 14px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
     }
 
     .title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 2px;
+      line-height: 1.05;
+      margin-bottom: 1px;
       color: var(--text);
     }
 
     .subtitle {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--muted);
-      line-height: 1.25;
-      margin-bottom: 12px;
+      line-height: 1.15;
+      margin-bottom: 8px;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      gap: 8px;
       flex: 1;
       min-height: 0;
     }
@@ -70,107 +70,111 @@
     .day {
       background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 10px 8px 9px;
+      border-radius: 12px;
+      padding: 8px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
       min-height: 0;
       overflow: hidden;
     }
 
     .dow {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
       font-weight: 700;
-      margin-bottom: 8px;
-      line-height: 1.1;
+      margin-bottom: 6px;
+      line-height: 1.05;
     }
 
     .icon-wrap {
-      width: 42px;
-      height: 42px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       flex-shrink: 0;
     }
 
     .forecast-icon {
-      width: 42px;
-      height: 42px;
+      width: 32px;
+      height: 32px;
       display: block;
       object-fit: contain;
     }
 
     .cond {
-      font-size: 12px;
-      line-height: 1.25;
+      font-size: 11px;
+      line-height: 1.15;
       color: var(--text);
       text-align: center;
-      min-height: 32px;
+      min-height: 26px;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .spacer {
-      flex: 1;
-      min-height: 8px;
+      margin-bottom: 6px;
     }
 
     .temps {
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 800;
-      line-height: 1.2;
+      line-height: 1.1;
       color: var(--text);
       text-align: center;
       white-space: nowrap;
-      margin-top: 8px;
+      margin-top: auto;
     }
 
     @media (max-width: 420px) {
       .card {
-        padding: 12px;
+        padding: 8px;
         border-radius: 16px;
       }
 
       .title {
-        font-size: 17px;
+        font-size: 15px;
       }
 
-      .grid {
-        gap: 8px;
-      }
-
-      .day {
-        padding: 9px 6px 8px;
-      }
-
-      .dow {
-        font-size: 12px;
+      .subtitle {
+        font-size: 9px;
         margin-bottom: 7px;
       }
 
+      .grid {
+        gap: 6px;
+      }
+
+      .day {
+        padding: 7px 5px;
+        border-radius: 10px;
+      }
+
+      .dow {
+        font-size: 11px;
+        margin-bottom: 5px;
+      }
+
       .icon-wrap {
-        width: 36px;
-        height: 36px;
-        margin-bottom: 8px;
+        width: 28px;
+        height: 28px;
+        margin-bottom: 5px;
       }
 
       .forecast-icon {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
       }
 
       .cond {
-        font-size: 11px;
-        min-height: 28px;
+        font-size: 10px;
+        min-height: 22px;
+        margin-bottom: 5px;
       }
 
       .temps {
-        font-size: 16px;
+        font-size: 13px;
       }
     }
   </style>
@@ -192,6 +196,7 @@
       `&timezone=auto&forecast_days=4`;
 
     const ICON_BASE = "https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/";
+    const FALLBACK_ICON = "partly-cloudy-day.svg";
 
     function codeText(code) {
       const map = {
@@ -229,7 +234,7 @@
 
     function mapWeatherCodeToIcon(code) {
       if (code === 0) return "clear-day.svg";
-      if (code === 1) return "mostly-clear-day.svg";
+      if (code === 1) return "partly-cloudy-day.svg";
       if (code === 2) return "partly-cloudy-day.svg";
       if (code === 3) return "overcast.svg";
 
@@ -255,7 +260,7 @@
       if ([95].includes(code)) return "thunderstorms.svg";
       if ([96, 99].includes(code)) return "severe-thunderstorms.svg";
 
-      return "partly-cloudy-day.svg";
+      return FALLBACK_ICON;
     }
 
     function fmtDay(dateStr) {
@@ -280,9 +285,15 @@
             <img class="forecast-icon" src="${ICON_BASE + iconFile}" alt="${codeText(code)}" />
           </div>
           <div class="cond">${codeText(code)}</div>
-          <div class="spacer"></div>
           <div class="temps">${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°</div>
         `;
+
+        const img = el.querySelector(".forecast-icon");
+        img.onerror = function () {
+          this.onerror = null;
+          this.src = ICON_BASE + FALLBACK_ICON;
+        };
+
         grid.appendChild(el);
       });
     }
