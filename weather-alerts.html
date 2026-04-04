@@ -4,17 +4,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Greater Victoria Alerts</title>
+
   <style>
     :root{
-      --panel: rgba(3, 10, 28, 0.82);
-      --panel2: rgba(10, 20, 46, 0.72);
-      --border: rgba(82, 140, 255, 0.18);
-      --text: #eef4ff;
-      --muted: rgba(210, 225, 255, 0.72);
-      --good: #69db7c;
-      --warn: #ffd43b;
-      --bad: #ff8787;
-      --shadow: 0 0 0 1px rgba(70,120,255,.08), 0 10px 30px rgba(0,0,0,.22);
+      --bg: #040b1f;
+      --card: #07122b;
+      --panel: #081630;
+      --panel-2: #091936;
+      --border: rgba(80, 145, 255, 0.22);
+      --border-strong: rgba(80, 145, 255, 0.34);
+      --text: #f2f6ff;
+      --muted: rgba(223, 232, 255, 0.72);
+
+      --ok-bg: rgba(50, 180, 110, 0.14);
+      --ok-border: rgba(70, 210, 130, 0.34);
+
+      --watch-bg: rgba(255, 190, 70, 0.16);
+      --watch-border: rgba(255, 196, 77, 0.38);
+
+      --warn-bg: rgba(255, 110, 80, 0.16);
+      --warn-border: rgba(255, 120, 90, 0.40);
+
+      --btn-bg: #0a1a36;
+      --btn-bg-2: #0c2245;
+      --btn-border: rgba(80, 145, 255, 0.24);
     }
 
     * { box-sizing: border-box; }
@@ -25,7 +38,7 @@
       height: 100%;
       background: transparent !important;
       color: var(--text);
-      font-family: Inter, Segoe UI, Arial, sans-serif;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
       overflow: hidden;
     }
 
@@ -36,244 +49,520 @@
     .card {
       width: 100%;
       height: 100vh;
-      background: linear-gradient(180deg, rgba(8,18,44,.88), rgba(3,10,28,.86));
+      border-radius: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
+        linear-gradient(180deg, #07122b, #040b1f);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      padding: 10px;
+      box-shadow: none;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      overflow: hidden;
+      contain: layout paint;
     }
 
-    .topbar {
+    .top {
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
     }
 
-    .heading {
+    .title-wrap {
       min-width: 0;
       flex: 1;
     }
 
     .title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 800;
-      line-height: 1.05;
-      margin-bottom: 1px;
+      line-height: 1.1;
+      margin: 0 0 2px;
       color: var(--text);
     }
 
-    .subtitle {
-      font-size: 10px;
+    .subtitle,
+    .updated {
+      font-size: 11px;
+      line-height: 1.2;
       color: var(--muted);
-      line-height: 1.15;
     }
 
-    .links {
+    .updated {
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .actions {
       display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      gap: 8px;
       flex-shrink: 0;
-      max-width: 52%;
     }
 
-    a {
-      text-decoration: none;
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--btn-border);
+      background: linear-gradient(180deg, var(--btn-bg), var(--btn-bg-2));
       color: var(--text);
+      text-decoration: none;
       font-size: 11px;
       font-weight: 700;
-      padding: 7px 9px;
-      border-radius: 10px;
-      background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
-      border: 1px solid var(--border);
       line-height: 1;
       white-space: nowrap;
     }
 
-    .badge {
-      padding: 10px 12px;
+    .status {
       border-radius: 12px;
       border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1.1;
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 62px;
     }
 
-    .badge.ok { color: var(--good); }
-    .badge.warn { color: var(--warn); }
-    .badge.bad { color: var(--bad); }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex-shrink: 0;
+      background: #5fd58d;
+      box-shadow: 0 0 0 3px rgba(95, 213, 141, 0.14);
+    }
 
-    .body {
+    .status-text {
+      min-width: 0;
+    }
+
+    .status-title {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .status-sub {
+      font-size: 11px;
+      line-height: 1.2;
       color: var(--muted);
-      font-size: 12px;
-      line-height: 1.35;
-      overflow: auto;
-      flex: 1;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       min-height: 0;
+      overflow: auto;
       padding-right: 2px;
     }
 
-    .alert-item {
-      background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 9px 10px;
-      margin-top: 8px;
+    .list::-webkit-scrollbar {
+      width: 8px;
     }
 
-    .alert-item:first-child {
-      margin-top: 0;
+    .list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .list::-webkit-scrollbar-thumb {
+      background: rgba(90, 140, 255, 0.24);
+      border-radius: 999px;
+    }
+
+    .alert {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      padding: 10px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .alert.severity-warning {
+      background:
+        linear-gradient(180deg, rgba(255,110,80,0.10), rgba(255,110,80,0.04)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      border-color: var(--warn-border);
+    }
+
+    .alert.severity-watch {
+      background:
+        linear-gradient(180deg, rgba(255,190,70,0.10), rgba(255,190,70,0.04)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      border-color: var(--watch-border);
+    }
+
+    .alert-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .alert-type {
+      min-width: 0;
+      flex: 1;
     }
 
     .alert-title {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
+      line-height: 1.15;
       color: var(--text);
       margin-bottom: 4px;
-      line-height: 1.2;
     }
 
-    .alert-summary {
+    .alert-meta {
       font-size: 11px;
+      line-height: 1.2;
       color: var(--muted);
-      line-height: 1.3;
     }
 
-    .alert-updated {
+    .badge {
+      flex-shrink: 0;
+      padding: 6px 8px;
+      border-radius: 999px;
       font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      line-height: 1;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: rgba(120, 150, 255, 0.10);
+    }
+
+    .badge.warning {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+    }
+
+    .badge.watch {
+      background: var(--watch-bg);
+      border-color: var(--watch-border);
+    }
+
+    .badge.info {
+      background: rgba(90, 150, 255, 0.12);
+      border-color: rgba(90, 150, 255, 0.28);
+    }
+
+    .alert-desc {
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty {
+      border-radius: 12px;
+      border: 1px solid var(--ok-border);
+      background:
+        linear-gradient(180deg, rgba(50,180,110,0.08), rgba(50,180,110,0.03)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .empty-title {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .empty-sub {
+      font-size: 12px;
+      line-height: 1.3;
       color: var(--muted);
-      margin-top: 5px;
-      line-height: 1.2;
+    }
+
+    .loading,
+    .error {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .error {
+      border-color: var(--warn-border);
+      color: var(--text);
     }
 
     @media (max-width: 420px) {
       .card {
-        padding: 8px;
-        border-radius: 16px;
-        gap: 7px;
+        padding: 10px;
+        gap: 8px;
+        border-radius: 0;
       }
 
       .title {
-        font-size: 15px;
+        font-size: 17px;
       }
 
-      .subtitle {
-        font-size: 9px;
-      }
-
-      .topbar {
-        gap: 6px;
-      }
-
-      .links {
-        gap: 5px;
-        max-width: 56%;
-      }
-
-      a {
+      .subtitle,
+      .updated,
+      .alert-meta,
+      .status-sub {
         font-size: 10px;
-        padding: 6px 8px;
-        border-radius: 9px;
       }
 
-      .badge {
-        font-size: 13px;
-        padding: 9px 10px;
-      }
-
-      .body {
-        font-size: 11px;
+      .status-title,
+      .empty-title {
+        font-size: 14px;
       }
 
       .alert-title {
+        font-size: 13px;
+      }
+
+      .alert-desc,
+      .empty-sub,
+      .loading,
+      .error {
         font-size: 11px;
       }
 
-      .alert-summary {
+      .action-btn {
+        padding: 7px 9px;
         font-size: 10px;
-      }
-
-      .alert-updated {
-        font-size: 9px;
       }
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="topbar">
-      <div class="heading">
+    <div class="top">
+      <div class="title-wrap">
         <div class="title">Greater Victoria Alerts</div>
         <div class="subtitle">Environment Canada</div>
+        <div class="updated" id="updated">Checking alerts…</div>
       </div>
 
-      <div class="links">
-        <a href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">Official alerts</a>
-        <a href="https://weather.gc.ca/en/location/index.html?coords=48.433%2C-123.362" target="_blank" rel="noopener noreferrer">Forecast</a>
+      <div class="actions">
+        <a
+          class="action-btn"
+          href="https://weather.gc.ca/warnings/report_e.html?bc43="
+          target="_blank"
+          rel="noopener noreferrer"
+        >Official alerts</a>
+
+        <a
+          class="action-btn"
+          href="https://weather.gc.ca/city/pages/bc-85_metric_e.html"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Forecast</a>
       </div>
     </div>
 
-    <div class="badge" id="status">Checking alerts…</div>
+    <div class="status">
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-text">
+        <div class="status-title" id="statusTitle">Checking alerts…</div>
+        <div class="status-sub" id="statusSub">Loading current Environment Canada alert status.</div>
+      </div>
+    </div>
 
-    <div class="body" id="body">Loading…</div>
+    <div class="list" id="content">
+      <div class="loading">Loading…</div>
+    </div>
   </div>
 
   <script>
-    const ALERTS_API = "https://victoria-alerts.j-r-moroschan.workers.dev";
+    const ALERTS_URL = "https://victoria-alerts.j-r-moroschan.workers.dev";
 
-    async function loadAlerts() {
-      const statusEl = document.getElementById("status");
-      const bodyEl = document.getElementById("body");
+    const updatedEl = document.getElementById("updated");
+    const statusTitleEl = document.getElementById("statusTitle");
+    const statusSubEl = document.getElementById("statusSub");
+    const statusDotEl = document.getElementById("statusDot");
+    const contentEl = document.getElementById("content");
 
-      try {
-        const res = await fetch(ALERTS_API, { cache: "no-store" });
-        if (!res.ok) throw new Error("API request failed");
+    function setStatus(kind, title, sub) {
+      statusTitleEl.textContent = title;
+      statusSubEl.textContent = sub || "";
 
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.status || "Feed parse failed");
-
-        if (data.noAlerts) {
-          statusEl.textContent = "No alerts in effect";
-          statusEl.className = "badge ok";
-          bodyEl.textContent = "Environment Canada currently shows no alerts in effect for Greater Victoria.";
-          return;
-        }
-
-        statusEl.textContent = `${data.count} active alert${data.count === 1 ? "" : "s"}`;
-        statusEl.className = "badge warn";
-
-        bodyEl.innerHTML = data.alerts.map(alert => `
-          <div class="alert-item">
-            <div class="alert-title">${escapeHtml(alert.title || "Weather alert")}</div>
-            <div class="alert-summary">${escapeHtml(alert.summary || "See official alert for full details.")}</div>
-            ${alert.updated ? `<div class="alert-updated">Updated: ${escapeHtml(alert.updated)}</div>` : ""}
-          </div>
-        `).join("");
-      } catch (err) {
-        statusEl.textContent = "Could not load alerts feed";
-        statusEl.className = "badge warn";
-        bodyEl.textContent = "The official feed could not be loaded right now. Use the official alerts button above.";
+      if (kind === "warning") {
+        statusDotEl.style.background = "#ff8a6b";
+        statusDotEl.style.boxShadow = "0 0 0 3px rgba(255,138,107,0.16)";
+      } else if (kind === "watch") {
+        statusDotEl.style.background = "#ffc95c";
+        statusDotEl.style.boxShadow = "0 0 0 3px rgba(255,201,92,0.16)";
+      } else {
+        statusDotEl.style.background = "#5fd58d";
+        statusDotEl.style.boxShadow = "0 0 0 3px rgba(95,213,141,0.14)";
       }
     }
 
-    function escapeHtml(text) {
-      return String(text || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatTime(value) {
+      if (!value) return "";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      return d.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function badgeClass(text) {
+      const t = String(text || "").toLowerCase();
+      if (t.includes("warning")) return "warning";
+      if (t.includes("watch")) return "watch";
+      return "info";
+    }
+
+    function alertSeverity(alert) {
+      const text = `${alert?.type || ""} ${alert?.title || ""}`.toLowerCase();
+      if (text.includes("warning")) return "warning";
+      if (text.includes("watch")) return "watch";
+      return "info";
+    }
+
+    function pickAlertTime(alert) {
+      return alert?.issuedAt || alert?.published || alert?.effective || alert?.updated || "";
+    }
+
+    function pickAlertDescription(alert) {
+      return (
+        alert?.summary ||
+        alert?.description ||
+        alert?.details ||
+        alert?.headline ||
+        "No further details provided."
+      );
+    }
+
+    function renderEmpty(data) {
+      contentEl.innerHTML = `
+        <div class="empty">
+          <div class="empty-title">No active weather alerts</div>
+          <div class="empty-sub">
+            ${escapeHtml(data?.region || "Greater Victoria")} is currently clear in the alerts feed.
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAlerts(data) {
+      const alerts = Array.isArray(data?.alerts) ? data.alerts : [];
+
+      if (!alerts.length) {
+        renderEmpty(data);
+        return;
+      }
+
+      contentEl.innerHTML = alerts.map((alert) => {
+        const severity = alertSeverity(alert);
+        const badge = alert?.type || "Alert";
+        const title = alert?.title || alert?.event || "Weather alert";
+        const when = pickAlertTime(alert);
+        const desc = pickAlertDescription(alert);
+
+        return `
+          <div class="alert severity-${severity}">
+            <div class="alert-head">
+              <div class="alert-type">
+                <div class="alert-title">${escapeHtml(title)}</div>
+                <div class="alert-meta">
+                  ${when ? `Issued ${escapeHtml(formatTime(when))}` : "Current alert"}
+                </div>
+              </div>
+              <div class="badge ${badgeClass(badge)}">${escapeHtml(badge)}</div>
+            </div>
+            <div class="alert-desc">${escapeHtml(desc)}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function loadAlerts() {
+      try {
+        updatedEl.textContent = "Checking alerts…";
+
+        const res = await fetch(ALERTS_URL, { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        const fetchedAt = data?.fetchedAt ? new Date(data.fetchedAt) : new Date();
+        updatedEl.textContent = `Updated ${fetchedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+
+        if (data?.ok !== true) {
+          setStatus("warning", "Alert feed issue", "The alerts worker responded, but the payload was not marked OK.");
+          contentEl.innerHTML = `<div class="error">The alerts feed returned an unexpected response.</div>`;
+          return;
+        }
+
+        const alerts = Array.isArray(data?.alerts) ? data.alerts : [];
+        const count = typeof data?.count === "number" ? data.count : alerts.length;
+        const noAlerts = data?.noAlerts === true || count === 0;
+
+        if (noAlerts) {
+          setStatus("ok", "No active alerts", "No current Environment Canada alerts for Greater Victoria.");
+          renderEmpty(data);
+          return;
+        }
+
+        const hasWarning = alerts.some(a => alertSeverity(a) === "warning");
+        const hasWatch = alerts.some(a => alertSeverity(a) === "watch");
+
+        if (hasWarning) {
+          setStatus("warning", `${count} active alert${count === 1 ? "" : "s"}`, "Environment Canada has one or more warning-level alerts posted.");
+        } else if (hasWatch) {
+          setStatus("watch", `${count} active alert${count === 1 ? "" : "s"}`, "Environment Canada has one or more watch-level alerts posted.");
+        } else {
+          setStatus("watch", `${count} active alert${count === 1 ? "" : "s"}`, "Environment Canada has posted active alerts for Greater Victoria.");
+        }
+
+        renderAlerts(data);
+      } catch (err) {
+        console.error("Alerts widget error:", err);
+        updatedEl.textContent = "Alerts update failed";
+        setStatus("warning", "Unable to load alerts", "The worker or upstream feed could not be reached right now.");
+        contentEl.innerHTML = `
+          <div class="error">
+            Alerts could not be loaded right now. Try again shortly, or use the Official alerts button.
+          </div>
+        `;
+      }
     }
 
     loadAlerts();
-    setInterval(loadAlerts, 10 * 60 * 1000);
+    setInterval(loadAlerts, 5 * 60 * 1000);
   </script>
 </body>
 </html>
