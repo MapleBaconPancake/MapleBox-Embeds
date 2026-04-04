@@ -4,15 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Victoria Current Weather</title>
+
   <style>
     :root{
-      --panel: rgba(3, 10, 28, 0.82);
-      --panel2: rgba(10, 20, 46, 0.72);
-      --border: rgba(82, 140, 255, 0.18);
-      --text: #eef4ff;
-      --muted: rgba(210, 225, 255, 0.72);
-      --accent: #39c6ff;
-      --shadow: 0 0 0 1px rgba(70,120,255,.08), 0 10px 30px rgba(0,0,0,.22);
+      --bg: #040b1f;
+      --card: #07122b;
+      --panel: #081630;
+      --panel-2: #091936;
+      --border: rgba(80, 145, 255, 0.22);
+      --text: #f2f6ff;
+      --muted: rgba(223, 232, 255, 0.72);
     }
 
     * { box-sizing: border-box; }
@@ -23,7 +24,7 @@
       height: 100%;
       background: transparent !important;
       color: var(--text);
-      font-family: Inter, Segoe UI, Arial, sans-serif;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
       overflow: hidden;
     }
 
@@ -34,15 +35,18 @@
     .card {
       width: 100%;
       height: 100vh;
-      background: linear-gradient(180deg, rgba(8,18,44,.88), rgba(3,10,28,.86));
+      border-radius: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
+        linear-gradient(180deg, #07122b, #040b1f);
       border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      padding: 14px;
+      box-shadow: none;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      overflow: hidden;
+      contain: layout paint;
     }
 
     .top {
@@ -51,24 +55,12 @@
       align-items: flex-start;
       gap: 10px;
       margin-bottom: 8px;
+      min-width: 0;
     }
 
     .top-left {
       min-width: 0;
       flex: 1;
-    }
-
-    .icon-wrap {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 78px;
-      height: 78px;
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(14,28,64,.82), rgba(8,18,42,.72));
-      border: 1px solid var(--border);
-      overflow: hidden;
     }
 
     .title {
@@ -83,30 +75,58 @@
     .updated {
       font-size: 11px;
       color: var(--muted);
-      line-height: 1.25;
+      line-height: 1.2;
     }
 
     .updated {
       margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .icon-wrap {
+      width: 76px;
+      height: 76px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    #weatherIcon {
+      width: 60px;
+      height: 60px;
+      display: block;
+      object-fit: contain;
     }
 
     .temp {
       font-size: 52px;
       font-weight: 900;
-      line-height: 1;
+      line-height: 0.95;
+      letter-spacing: -1.2px;
       margin: 6px 0 4px;
-    }
-
-    .condition {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      line-height: 1.2;
       color: var(--text);
     }
 
+    .condition {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 4px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .feels {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--muted);
       margin-bottom: 10px;
       line-height: 1.2;
@@ -120,7 +140,7 @@
     }
 
     .metric {
-      background: linear-gradient(180deg, rgba(12,24,56,.78), rgba(8,16,38,.72));
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 10px 11px;
@@ -128,6 +148,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-width: 0;
     }
 
     .label {
@@ -144,6 +165,9 @@
       font-weight: 800;
       line-height: 1.1;
       color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .sub {
@@ -153,17 +177,10 @@
       line-height: 1.1;
     }
 
-    #weatherIcon {
-      width: 64px;
-      height: 64px;
-      display: block;
-      object-fit: contain;
-    }
-
     @media (max-width: 420px) {
       .card {
-        padding: 12px;
-        border-radius: 16px;
+        padding: 10px;
+        border-radius: 0;
       }
 
       .title {
@@ -175,13 +192,13 @@
       }
 
       .icon-wrap {
-        width: 70px;
-        height: 70px;
+        width: 68px;
+        height: 68px;
       }
 
       #weatherIcon {
-        width: 58px;
-        height: 58px;
+        width: 54px;
+        height: 54px;
       }
 
       .metric {
@@ -241,7 +258,7 @@
     const LAT = 48.4284;
     const LON = -123.3656;
 
-    const url =
+    const API_URL =
       `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
       `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day` +
       `&timezone=auto&wind_speed_unit=kmh`;
@@ -291,36 +308,27 @@
 
     function mapWeatherCodeToIcon(code, isDay) {
       if (code === 0) return isDay ? "clear-day.svg" : "clear-night.svg";
-      if (code === 1) return isDay ? "partly-cloudy-day.svg" : "partly-cloudy-night.svg";
-      if (code === 2) return isDay ? "partly-cloudy-day.svg" : "partly-cloudy-night.svg";
+      if (code === 1 || code === 2) return isDay ? "partly-cloudy-day.svg" : "partly-cloudy-night.svg";
       if (code === 3) return "overcast.svg";
-
       if (code === 45 || code === 48) return "fog.svg";
-
       if ([51, 53].includes(code)) return "drizzle.svg";
       if ([55].includes(code)) return "extreme-drizzle.svg";
       if ([56, 57].includes(code)) return "sleet.svg";
-
       if ([61, 63].includes(code)) return "rain.svg";
       if ([65].includes(code)) return "extreme-rain.svg";
       if ([66, 67].includes(code)) return "sleet.svg";
-
       if ([71, 73].includes(code)) return "snow.svg";
       if ([75].includes(code)) return "extreme-snow.svg";
       if ([77].includes(code)) return "snowflake.svg";
-
       if ([80, 81].includes(code)) return "showers.svg";
       if ([82].includes(code)) return "extreme-showers.svg";
-
       if ([85, 86].includes(code)) return "snow.svg";
-
       if ([95].includes(code)) return "thunderstorms.svg";
       if ([96, 99].includes(code)) return "severe-thunderstorms.svg";
-
       return isDay ? FALLBACK_DAY : FALLBACK_NIGHT;
     }
 
-    function setAnimatedIcon(weatherCode, isDay) {
+    function setWeatherIcon(weatherCode, isDay) {
       const iconFile = mapWeatherCodeToIcon(weatherCode, isDay);
       const img = document.getElementById("weatherIcon");
 
@@ -333,25 +341,32 @@
     }
 
     async function loadWeather() {
-      const res = await fetch(url, { cache: "no-store" });
-      const data = await res.json();
-      const c = data.current;
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      document.getElementById("temp").textContent = `${Math.round(c.temperature_2m)}°C`;
-      document.getElementById("condition").textContent = codeText(c.weather_code);
-      document.getElementById("feelsLike").textContent = `Feels like ${Math.round(c.apparent_temperature)}°C`;
-      document.getElementById("wind").textContent = `${Math.round(c.wind_speed_10m)} km/h`;
-      document.getElementById("gust").textContent = `${Math.round(c.wind_gusts_10m || 0)} km/h`;
+        const data = await res.json();
+        const c = data.current;
 
-      const deg = Math.round(c.wind_direction_10m);
-      document.getElementById("direction").textContent = degToCompass(c.wind_direction_10m);
-      document.getElementById("directionDeg").textContent = `${deg}°`;
-      document.getElementById("humidity").textContent = `${Math.round(c.relative_humidity_2m)}%`;
+        document.getElementById("temp").textContent = `${Math.round(c.temperature_2m)}°C`;
+        document.getElementById("condition").textContent = codeText(c.weather_code);
+        document.getElementById("feelsLike").textContent = `Feels like ${Math.round(c.apparent_temperature)}°C`;
+        document.getElementById("wind").textContent = `${Math.round(c.wind_speed_10m)} km/h`;
+        document.getElementById("gust").textContent = `${Math.round(c.wind_gusts_10m || 0)} km/h`;
 
-      document.getElementById("updated").textContent =
-        `Updated ${new Date(c.time).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+        const deg = Math.round(c.wind_direction_10m);
+        document.getElementById("direction").textContent = degToCompass(c.wind_direction_10m);
+        document.getElementById("directionDeg").textContent = `${deg}°`;
+        document.getElementById("humidity").textContent = `${Math.round(c.relative_humidity_2m)}%`;
 
-      setAnimatedIcon(c.weather_code, c.is_day === 1);
+        document.getElementById("updated").textContent =
+          `Updated ${new Date(c.time).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+
+        setWeatherIcon(c.weather_code, c.is_day === 1);
+      } catch (err) {
+        document.getElementById("updated").textContent = "Weather update failed";
+        console.error("Weather widget error:", err);
+      }
     }
 
     loadWeather();
