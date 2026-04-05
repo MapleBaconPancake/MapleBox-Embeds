@@ -59,9 +59,7 @@
       overflow: hidden;
     }
 
-    body {
-      padding: 0;
-    }
+    body { padding: 0; }
 
     .card {
       width: 100%;
@@ -73,8 +71,8 @@
       border: none;
       padding: 10px;
       display: grid;
-      grid-template-rows: auto auto minmax(58px, 1fr) auto;
-      gap: 6px;
+      grid-template-rows: auto auto auto;
+      gap: 9px;
       overflow: hidden;
       contain: layout paint;
     }
@@ -82,7 +80,7 @@
     .top {
       display: grid;
       grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-      gap: 8px;
+      gap: 10px;
       min-width: 0;
       align-items: start;
     }
@@ -115,6 +113,7 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
+      padding-bottom: 2px;
     }
 
     .hero-main {
@@ -156,7 +155,7 @@
       align-items: baseline;
       gap: 8px;
       min-width: 0;
-      margin-top: 2px;
+      margin-top: 3px;
       flex-wrap: wrap;
     }
 
@@ -194,7 +193,7 @@
     }
 
     .descriptor-space {
-      min-height: 118px;
+      min-height: 116px;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
@@ -202,7 +201,7 @@
       gap: 6px;
       min-width: 0;
       text-align: right;
-      padding-top: 2px;
+      padding-top: 4px;
       background: transparent;
     }
 
@@ -250,53 +249,69 @@
       flex-shrink: 0;
     }
 
-    .stats {
+    .middle {
       display: grid;
-      grid-template-columns: 1.06fr 1.16fr 1.02fr 0.76fr;
-      gap: 7px;
+      grid-template-columns: 1fr 1.14fr 1fr 0.92fr;
+      grid-template-areas:
+        "wind air sunset uv"
+        "alerts alerts alerts humidity";
+      gap: 8px;
+      min-width: 0;
       min-height: 0;
+      margin-top: 8px;
     }
 
+    .slot-wind { grid-area: wind; }
+    .slot-air { grid-area: air; }
+    .slot-sunset { grid-area: sunset; }
+    .slot-uv { grid-area: uv; }
+    .slot-alerts { grid-area: alerts; min-width: 0; }
+    .slot-humidity { grid-area: humidity; }
+
     .stat {
-      min-height: 62px;
+      min-height: 74px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      padding: 8px 9px;
+      padding: 9px 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       min-width: 0;
+      overflow: hidden;
     }
 
     .stat.air-quality {
-      padding: 8px 9px;
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       color: var(--text);
     }
 
-    .stat.air-quality.aqhi-low {
+    .stat.air-quality.aqhi-low,
+    .stat.uv-low {
       border-color: var(--aqhi-low-border);
       background:
         linear-gradient(180deg, var(--aqhi-low-bg-top), var(--aqhi-low-bg-bottom)),
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
-    .stat.air-quality.aqhi-moderate {
+    .stat.air-quality.aqhi-moderate,
+    .stat.uv-moderate {
       border-color: var(--aqhi-moderate-border);
       background:
         linear-gradient(180deg, var(--aqhi-moderate-bg-top), var(--aqhi-moderate-bg-bottom)),
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
-    .stat.air-quality.aqhi-high {
+    .stat.air-quality.aqhi-high,
+    .stat.uv-high {
       border-color: var(--aqhi-high-border);
       background:
         linear-gradient(180deg, var(--aqhi-high-bg-top), var(--aqhi-high-bg-bottom)),
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
-    .stat.air-quality.aqhi-veryhigh {
+    .stat.air-quality.aqhi-veryhigh,
+    .stat.uv-veryhigh {
       border-color: var(--aqhi-veryhigh-border);
       background:
         linear-gradient(180deg, var(--aqhi-veryhigh-bg-top), var(--aqhi-veryhigh-bg-bottom)),
@@ -309,53 +324,6 @@
       opacity: 1;
       margin-top: 0;
     }
-
-    .aqhi-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .aqhi-subrow {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 4px;
-      min-width: 0;
-    }
-
-    .aqhi-badge {
-      min-width: 30px;
-      height: 30px;
-      padding: 0 7px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      font-weight: 900;
-      line-height: 1;
-      background: rgba(255,255,255,0.08);
-      border: 2px solid currentColor;
-      color: inherit;
-      flex-shrink: 0;
-    }
-
-    .aqhi-risk {
-      font-size: 16px;
-      font-weight: 800;
-      line-height: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: var(--text);
-    }
-
-    .stat.air-quality.aqhi-low .aqhi-badge { color: var(--aqhi-low-accent); }
-    .stat.air-quality.aqhi-moderate .aqhi-badge { color: var(--aqhi-moderate-accent); }
-    .stat.air-quality.aqhi-high .aqhi-badge { color: var(--aqhi-high-accent); }
-    .stat.air-quality.aqhi-veryhigh .aqhi-badge { color: var(--aqhi-veryhigh-accent); }
 
     .stat.wind-low {
       border-color: var(--aqhi-low-border);
@@ -389,15 +357,15 @@
       font-size: 10px;
       line-height: 1;
       text-transform: uppercase;
-      letter-spacing: 0.7px;
+      letter-spacing: 0.78px;
       color: var(--muted);
-      margin-bottom: 5px;
+      margin-bottom: 6px;
     }
 
     .stat-value {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 800;
-      line-height: 1;
+      line-height: 1.05;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -405,22 +373,60 @@
 
     .stat-sub {
       font-size: 11px;
-      line-height: 1.1;
+      line-height: 1.14;
       color: var(--muted);
-      margin-top: 4px;
+      margin-top: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .aqhi-subrow .stat-sub {
-      font-size: 10px;
+    .aqhi-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .aqhi-subrow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 5px;
+      min-width: 0;
+    }
+
+    .aqhi-badge {
+      min-width: 31px;
+      height: 31px;
+      padding: 0 7px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
       line-height: 1;
-      margin-top: 0;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid currentColor;
+      color: inherit;
+      flex-shrink: 0;
+    }
+
+    .aqhi-risk {
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--text);
     }
+
+    .stat.air-quality.aqhi-low .aqhi-badge { color: var(--aqhi-low-accent); }
+    .stat.air-quality.aqhi-moderate .aqhi-badge { color: var(--aqhi-moderate-accent); }
+    .stat.air-quality.aqhi-high .aqhi-badge { color: var(--aqhi-high-accent); }
+    .stat.air-quality.aqhi-veryhigh .aqhi-badge { color: var(--aqhi-veryhigh-accent); }
 
     #sunset {
       font-size: 16px;
@@ -430,9 +436,10 @@
     .alerts-link {
       display: flex;
       min-width: 0;
-      min-height: 0;
+      min-height: 74px;
       text-decoration: none;
       color: inherit;
+      height: 100%;
     }
 
     .alerts-row {
@@ -441,13 +448,13 @@
       gap: 10px;
       width: 100%;
       height: 100%;
-      min-height: 58px;
+      min-height: 74px;
       border-radius: 12px;
       border: 1px solid var(--alert-none-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
         var(--alert-none-bg);
-      padding: 8px 14px;
+      padding: 10px 14px;
       min-width: 0;
       overflow: hidden;
       cursor: pointer;
@@ -500,13 +507,13 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 2px;
+      gap: 3px;
     }
 
     .alerts-title {
       font-size: 13px;
       font-weight: 800;
-      line-height: 1.05;
+      line-height: 1.08;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -514,11 +521,12 @@
 
     .alerts-sub {
       font-size: 11px;
-      line-height: 1.05;
+      line-height: 1.08;
       color: var(--muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      min-height: 12px;
     }
 
     .forecast {
@@ -526,7 +534,7 @@
       grid-template-columns: repeat(5, 1fr);
       gap: 6px;
       min-height: 0;
-      align-self: end;
+      min-width: 0;
     }
 
     .forecast-day {
@@ -623,6 +631,15 @@
       text-align: center;
       white-space: nowrap;
     }
+
+    @media (max-height: 610px) {
+      .card { gap: 8px; }
+      .temp { font-size: 54px; }
+      .descriptor-space { min-height: 108px; }
+      .middle { gap: 7px; }
+      .stat, .alerts-row { min-height: 68px; }
+      .forecast-day { padding-top: 6px; padding-bottom: 6px; }
+    }
   </style>
 </head>
 <body>
@@ -659,14 +676,14 @@
       </div>
     </div>
 
-    <div class="stats">
-      <div class="stat" id="wind-stat">
+    <div class="middle">
+      <div class="stat slot-wind" id="wind-stat">
         <div class="stat-label">Wind</div>
         <div class="stat-value" id="wind-value">-- km/h</div>
-        <div class="stat-sub" id="wind-sub">Gust -- km/h</div>
+        <div class="stat-sub" id="wind-sub">Current wind speed</div>
       </div>
 
-      <div class="stat air-quality aqhi-low" id="aqhi-stat">
+      <div class="stat air-quality aqhi-low slot-air" id="aqhi-stat">
         <div class="stat-label">Air Quality</div>
         <div class="aqhi-row">
           <div class="aqhi-risk" id="aqhi-risk">Loading</div>
@@ -677,28 +694,36 @@
         </div>
       </div>
 
-      <div class="stat">
+      <div class="stat slot-sunset">
         <div class="stat-label">Sunset</div>
         <div class="stat-value" id="sunset">--:--</div>
         <div class="stat-sub">Local time</div>
       </div>
 
-      <div class="stat">
+      <div class="stat slot-uv" id="uv-stat">
+        <div class="stat-label">UV</div>
+        <div class="stat-value" id="uv-value">--</div>
+        <div class="stat-sub" id="uv-sub">Current</div>
+      </div>
+
+      <div class="slot-alerts">
+        <a class="alerts-link" id="alerts-link" href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">
+          <div class="alerts-row alert-none" id="alerts-row">
+            <div class="alerts-dot"></div>
+            <div class="alerts-text">
+              <div class="alerts-title" id="alerts-title">Greater Victoria alerts</div>
+              <div class="alerts-sub" id="alerts-sub"></div>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <div class="stat slot-humidity">
         <div class="stat-label">Humidity</div>
         <div class="stat-value" id="humidity">--%</div>
         <div class="stat-sub">Current</div>
       </div>
     </div>
-
-    <a class="alerts-link" id="alerts-link" href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">
-      <div class="alerts-row alert-none" id="alerts-row">
-        <div class="alerts-dot"></div>
-        <div class="alerts-text">
-          <div class="alerts-title" id="alerts-title">Greater Victoria alerts</div>
-          <div class="alerts-sub" id="alerts-sub">Checking official alerts</div>
-        </div>
-      </div>
-    </a>
 
     <div class="forecast" id="forecast"></div>
   </div>
@@ -707,8 +732,6 @@
     const LAT = 48.4621;
     const LON = -123.4689;
     const TZ = 'America/Vancouver';
-
-    const LOCATION_TITLE = 'View Royal';
     const AQHI_RADIUS_KM = 5;
 
     const ALERTS_URL = 'https://weather.gc.ca/warnings/report_e.html?bc43=';
@@ -717,8 +740,8 @@
       `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${LAT}` +
       `&longitude=${LON}` +
-      `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,precipitation_probability` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset` +
+      `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,precipitation_probability,uv_index` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset,uv_index_max` +
       `&timezone=${encodeURIComponent(TZ)}` +
       `&forecast_days=5` +
       `&cell_selection=land`;
@@ -727,16 +750,14 @@
       `https://api.weather.gc.ca/collections/aqhi-observations-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
 
     const AQHI_PAGE_MAP = {
-      'westshore': {
-        proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html'
-      },
-      'victoria/saanich': {
-        proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
-      }
+      westshore: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html',
+      victoria_saanich: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
     };
 
     const TWN_AIR_PROXY_URL = 'https://r.jina.ai/http://www.theweathernetwork.com/en/city/ca/british-columbia/victoria/air-quality';
     const ALERTS_PROXY_URL = 'https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=';
+
+    const FETCH_TIMEOUT_MS = 7000;
 
     const el = (id) => document.getElementById(id);
 
@@ -829,6 +850,22 @@
       return 'aqhi-veryhigh';
     }
 
+    function getUvClass(value) {
+      if (!Number.isFinite(value) || value < 3) return 'uv-low';
+      if (value < 6) return 'uv-moderate';
+      if (value < 8) return 'uv-high';
+      return 'uv-veryhigh';
+    }
+
+    function getUvLabel(value) {
+      if (!Number.isFinite(value)) return 'Unavailable';
+      if (value < 3) return 'Low';
+      if (value < 6) return 'Moderate';
+      if (value < 8) return 'High';
+      if (value < 11) return 'Very High';
+      return 'Extreme';
+    }
+
     function formatAqhiValue(value) {
       if (!Number.isFinite(value)) return '—';
       return value >= 10 ? '10+' : String(Math.round(value));
@@ -870,23 +907,37 @@
       return 2 * R * Math.asin(Math.sqrt(a));
     }
 
+    async function fetchWithTimeout(url, responseType = 'json') {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      try {
+        const res = await fetch(url, {
+          cache: 'no-store',
+          signal: controller.signal
+        });
+
+        if (!res.ok) {
+          throw new Error(`Fetch failed: ${res.status}`);
+        }
+
+        return responseType === 'text' ? await res.text() : await res.json();
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
     function fetchText(url) {
-      return fetch(url, { cache: 'no-store' }).then(async (res) => {
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-        return res.text();
-      });
+      return fetchWithTimeout(url, 'text');
     }
 
     function fetchJson(url) {
-      return fetch(url, { cache: 'no-store' }).then(async (res) => {
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-        return res.json();
-      });
+      return fetchWithTimeout(url, 'json');
     }
 
     function setWind(speed, gust, dirDeg) {
       const windStat = el('wind-stat');
-      windStat.className = 'stat';
+      windStat.className = 'stat slot-wind';
       const windClass = getWindClass(speed);
       if (windClass) windStat.classList.add(windClass);
 
@@ -897,12 +948,25 @@
         : speed < 5 ? 'Calm' : 'Steady';
     }
 
+    function setUv(uvNow, uvMax) {
+      const uvStat = el('uv-stat');
+      uvStat.className = 'stat slot-uv';
+      uvStat.classList.add(getUvClass(uvNow));
+
+      const roundedNow = Number.isFinite(uvNow) ? Math.round(uvNow * 10) / 10 : null;
+      const roundedMax = Number.isFinite(uvMax) ? Math.round(uvMax * 10) / 10 : null;
+
+      el('uv-value').textContent = roundedNow !== null ? String(roundedNow) : '—';
+      el('uv-sub').textContent = roundedMax !== null
+        ? `${getUvLabel(roundedNow)} • Max ${roundedMax}`
+        : getUvLabel(roundedNow);
+    }
+
     function mapFeature(feature) {
       const coords = feature?.geometry?.coordinates || [];
       const lon = Number(coords[0]);
       const lat = Number(coords[1]);
       const name = String(feature?.properties?.location_name_en || '');
-      const locationId = String(feature?.properties?.location_id || '');
       const distance = Number.isFinite(lat) && Number.isFinite(lon)
         ? distanceKm(LAT, LON, lat, lon)
         : Number.POSITIVE_INFINITY;
@@ -913,17 +977,8 @@
         lon,
         name,
         nameLower: name.toLowerCase(),
-        locationId,
         distance
       };
-    }
-
-    function getAqhiPageInfo(nameLower) {
-      if (nameLower.includes('westshore')) return AQHI_PAGE_MAP['westshore'];
-      if (nameLower.includes('victoria/saanich') || (nameLower.includes('victoria') && nameLower.includes('saanich'))) {
-        return AQHI_PAGE_MAP['victoria/saanich'];
-      }
-      return null;
     }
 
     function pickAqhiFeature(features) {
@@ -947,50 +1002,58 @@
       return withinRadius[0] || null;
     }
 
+    function getAqhiPageUrl(nameLower) {
+      if (nameLower.includes('westshore')) return AQHI_PAGE_MAP.westshore;
+      if (nameLower.includes('victoria/saanich') || (nameLower.includes('victoria') && nameLower.includes('saanich'))) {
+        return AQHI_PAGE_MAP.victoria_saanich;
+      }
+      return null;
+    }
+
     function classifyPollutantFromText(text) {
       const lower = String(text || '').toLowerCase();
+
+      if (
+        lower.includes('primary pollutant') &&
+        (lower.includes('pm2.5') || lower.includes('pm 2.5'))
+      ) return 'particles';
+
+      if (
+        lower.includes('primary pollutant') &&
+        (lower.includes('ozone') || lower.includes('o₃') || lower.includes('o3'))
+      ) return 'ozone';
+
+      if (
+        lower.includes('primary pollutant') &&
+        (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2'))
+      ) return 'no2';
 
       if (
         lower.includes('pm2.5') ||
         lower.includes('pm 2.5') ||
         lower.includes('fine particles') ||
-        lower.includes('particulate matter') ||
-        lower.includes('wildfire smoke') ||
-        lower.includes('forest fire smoke') ||
-        lower.includes('fire smoke') ||
-        lower.includes('wood smoke') ||
-        lower.includes('smoke') ||
-        lower.includes('dust') ||
-        lower.includes('soot')
-      ) {
-        return 'particles';
-      }
+        lower.includes('particulate matter')
+      ) return 'particles';
 
       if (
-        lower.includes('ozone') ||
-        lower.includes('o₃') ||
-        lower.includes('o3') ||
-        lower.includes('smog')
-      ) {
-        return 'ozone';
-      }
+        lower.includes('ground-level ozone') ||
+        lower.includes('ozone (o₃)') ||
+        lower.includes('ozone (o3)') ||
+        lower.includes('ozone')
+      ) return 'ozone';
 
       if (
         lower.includes('nitrogen dioxide') ||
         lower.includes('no₂') ||
-        lower.includes('no2') ||
-        lower.includes('traffic pollution') ||
-        lower.includes('vehicle exhaust')
-      ) {
-        return 'no2';
-      }
+        lower.includes('no2')
+      ) return 'no2';
 
       return null;
     }
 
     function setAirCard(aqhiData) {
       const aqhiStat = el('aqhi-stat');
-      aqhiStat.className = 'stat air-quality';
+      aqhiStat.className = 'stat air-quality slot-air';
 
       const currentValue = Number(aqhiData?.value);
 
@@ -1084,13 +1147,10 @@
     async function loadAqhi() {
       try {
         const obsData = await fetchJson(AQHI_OBS_API_URL);
-
         const pickedObs = pickAqhiFeature(obsData?.features || []);
+
         if (!pickedObs) {
-          return {
-            value: null,
-            pollutantKey: 'unknown'
-          };
+          return { value: null, pollutantKey: 'unknown' };
         }
 
         const obsProps = pickedObs.feature?.properties || {};
@@ -1098,10 +1158,10 @@
 
         let pollutantKey = null;
 
-        const pageInfo = getAqhiPageInfo(pickedObs.nameLower);
-        if (pageInfo?.proxyUrl) {
+        const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
+        if (ecUrl) {
           try {
-            const ecText = await fetchText(pageInfo.proxyUrl);
+            const ecText = await fetchText(ecUrl);
             pollutantKey = classifyPollutantFromText(ecText);
           } catch (error) {
             console.warn('EC AQ cause fetch failed.', error);
@@ -1117,13 +1177,9 @@
           }
         }
 
-        if (!pollutantKey) {
-          pollutantKey = 'unknown';
-        }
-
         return {
           value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-          pollutantKey
+          pollutantKey: pollutantKey || 'unknown'
         };
       } catch (error) {
         console.warn('AQHI load failed.', error);
@@ -1194,40 +1250,58 @@
       }
     }
 
+    async function loadWeather() {
+      return fetchJson(WEATHER_URL);
+    }
+
+    function applyWeather(weather) {
+      const current = weather.current;
+      const daily = weather.daily;
+      const currentMeta = weatherMeta(current.weather_code, Boolean(current.is_day));
+
+      el('title').textContent = 'View Royal';
+      el('updated').textContent = `Updated ${formatUpdated()}`;
+      el('temp').textContent = roundTemp(current.temperature_2m);
+      el('temp-icon').src = iconUrl(currentMeta.icon);
+      el('temp-icon').alt = currentMeta.text;
+      el('condition').textContent = currentMeta.text;
+
+      const precipProb = current.precipitation_probability;
+      el('precip').textContent = (typeof precipProb === 'number' && precipProb >= 15)
+        ? `Rain ${Math.round(precipProb)}%`
+        : '';
+
+      el('feels').textContent = `Feels ${roundTemp(current.apparent_temperature)}`;
+      el('high-low-inline').textContent = `H: ${Math.round(daily.temperature_2m_max[0])}°   L: ${Math.round(daily.temperature_2m_min[0])}°`;
+      el('humidity').textContent = `${Math.round(current.relative_humidity_2m)}%`;
+      el('sunset').textContent = formatShortTime(daily.sunset[0]);
+
+      setWind(current.wind_speed_10m, current.wind_gusts_10m, current.wind_direction_10m);
+      setUv(current.uv_index, daily.uv_index_max?.[0]);
+      renderForecast(daily);
+    }
+
     async function loadLiveWidget() {
       try {
-        const [weather, aqhi, alerts] = await Promise.all([
-          fetchJson(WEATHER_URL),
+        const weather = await loadWeather();
+        applyWeather(weather);
+
+        const [aqhi, alerts] = await Promise.allSettled([
           loadAqhi(),
           loadAlerts()
         ]);
 
-        const current = weather.current;
-        const daily = weather.daily;
-        const currentMeta = weatherMeta(current.weather_code, Boolean(current.is_day));
+        const aqhiData = aqhi.status === 'fulfilled'
+          ? aqhi.value
+          : { value: null, pollutantKey: 'unknown' };
 
-        el('title').textContent = LOCATION_TITLE;
-        el('updated').textContent = `Updated ${formatUpdated()}`;
-        el('temp').textContent = roundTemp(current.temperature_2m);
-        el('temp-icon').src = iconUrl(currentMeta.icon);
-        el('temp-icon').alt = currentMeta.text;
-        el('condition').textContent = currentMeta.text;
+        const alertsData = alerts.status === 'fulfilled'
+          ? alerts.value
+          : { status: 'error', count: 0 };
 
-        const precipProb = current.precipitation_probability;
-        el('precip').textContent = (typeof precipProb === 'number' && precipProb >= 15)
-          ? `Rain ${Math.round(precipProb)}%`
-          : '';
-
-        el('feels').textContent = `Feels ${roundTemp(current.apparent_temperature)}`;
-        el('high-low-inline').textContent = `H: ${Math.round(daily.temperature_2m_max[0])}°   L: ${Math.round(daily.temperature_2m_min[0])}°`;
-        el('humidity').textContent = `${Math.round(current.relative_humidity_2m)}%`;
-        el('sunset').textContent = formatShortTime(daily.sunset[0]);
-
-        setWind(current.wind_speed_10m, current.wind_gusts_10m, current.wind_direction_10m);
-        setAirCard(aqhi);
-        setAlertsBar(alerts);
-        setDescriptorContent(aqhi, alerts);
-        renderForecast(daily);
+        setAirCard(aqhiData);
+        setAlertsBar(alertsData);
+        setDescriptorContent(aqhiData, alertsData);
       } catch (error) {
         console.error(error);
         el('updated').textContent = 'Live widget failed to load';
