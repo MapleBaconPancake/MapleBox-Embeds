@@ -113,7 +113,7 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      padding-bottom: 2px;
+      padding-bottom: 4px;
     }
 
     .hero-main {
@@ -251,21 +251,23 @@
 
     .middle {
       display: grid;
-      grid-template-columns: 1fr 1.14fr 1fr 0.92fr;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       grid-template-areas:
-        "wind air sunset uv"
-        "alerts alerts alerts humidity";
+        "wind wind air air uv uv"
+        "alerts alerts alerts alerts sunset sunset"
+        "alerts alerts alerts alerts humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
-      margin-top: 8px;
+      margin-top: 10px;
+      align-items: stretch;
     }
 
     .slot-wind { grid-area: wind; }
     .slot-air { grid-area: air; }
-    .slot-sunset { grid-area: sunset; }
     .slot-uv { grid-area: uv; }
-    .slot-alerts { grid-area: alerts; min-width: 0; }
+    .slot-alerts { grid-area: alerts; min-width: 0; min-height: 0; }
+    .slot-sunset { grid-area: sunset; }
     .slot-humidity { grid-area: humidity; }
 
     .stat {
@@ -273,7 +275,7 @@
       border-radius: 12px;
       border: 1px solid var(--border);
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      padding: 9px 10px;
+      padding: 10px 11px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -436,7 +438,7 @@
     .alerts-link {
       display: flex;
       min-width: 0;
-      min-height: 74px;
+      min-height: 100%;
       text-decoration: none;
       color: inherit;
       height: 100%;
@@ -448,7 +450,7 @@
       gap: 10px;
       width: 100%;
       height: 100%;
-      min-height: 74px;
+      min-height: 100%;
       border-radius: 12px;
       border: 1px solid var(--alert-none-border);
       background:
@@ -637,7 +639,7 @@
       .temp { font-size: 54px; }
       .descriptor-space { min-height: 108px; }
       .middle { gap: 7px; }
-      .stat, .alerts-row { min-height: 68px; }
+      .stat { min-height: 68px; }
       .forecast-day { padding-top: 6px; padding-bottom: 6px; }
     }
   </style>
@@ -694,12 +696,6 @@
         </div>
       </div>
 
-      <div class="stat slot-sunset">
-        <div class="stat-label">Sunset</div>
-        <div class="stat-value" id="sunset">--:--</div>
-        <div class="stat-sub">Local time</div>
-      </div>
-
       <div class="stat slot-uv" id="uv-stat">
         <div class="stat-label">UV</div>
         <div class="stat-value" id="uv-value">--</div>
@@ -716,6 +712,12 @@
             </div>
           </div>
         </a>
+      </div>
+
+      <div class="stat slot-sunset">
+        <div class="stat-label">Sunset</div>
+        <div class="stat-value" id="sunset">--:--</div>
+        <div class="stat-sub">Local time</div>
       </div>
 
       <div class="stat slot-humidity">
