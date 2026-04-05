@@ -6,29 +6,29 @@
   <title>Weather Combined Live</title>
   <style>
     :root{
-      --bg: #030816;
-      --card: #07101f;
-      --panel: #071325;
-      --panel-2: #08172c;
-      --border: rgba(120, 155, 230, 0.14);
-      --border-strong: rgba(120, 155, 230, 0.2);
+      --bg: #030713;
+      --card: #050d1b;
+      --panel: #071222;
+      --panel-2: #081428;
+      --border: rgba(95, 130, 205, 0.14);
+      --border-strong: rgba(95, 130, 205, 0.18);
       --text: #f2f6ff;
-      --muted: rgba(223, 232, 255, 0.8);
+      --muted: rgba(223, 232, 255, 0.80);
 
-      --alert-none-bg: rgba(70, 110, 170, 0.08);
-      --alert-none-border: rgba(90, 135, 210, 0.16);
-      --alert-none-dot: #51d46a;
+      --alert-none-bg: rgba(55, 95, 150, 0.08);
+      --alert-none-border: rgba(85, 125, 195, 0.16);
+      --alert-none-dot: #4ed267;
 
-      --alert-watch-bg: rgba(255, 193, 77, 0.1);
-      --alert-watch-border: rgba(255, 203, 97, 0.22);
+      --alert-watch-bg: rgba(255, 193, 77, 0.10);
+      --alert-watch-border: rgba(255, 203, 97, 0.24);
       --alert-watch-dot: #ffd15d;
 
       --alert-warning-bg: rgba(255, 120, 90, 0.11);
-      --alert-warning-border: rgba(255, 130, 100, 0.24);
+      --alert-warning-border: rgba(255, 130, 100, 0.25);
       --alert-warning-dot: #ff8c6f;
 
       --aqhi-low-accent: #1499d3;
-      --aqhi-low-bg-top: rgba(20, 153, 211, 0.1);
+      --aqhi-low-bg-top: rgba(20, 153, 211, 0.10);
       --aqhi-low-bg-bottom: rgba(20, 153, 211, 0.04);
       --aqhi-low-border: rgba(20, 153, 211, 0.26);
 
@@ -66,19 +66,23 @@
       width: 100%;
       height: 100vh;
       border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      isolation: isolate;
       background:
-        radial-gradient(circle at top right, rgba(32, 120, 185, 0.12), transparent 32%),
-        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        linear-gradient(180deg, #061021, #040914);
-      border: 1px solid rgba(110, 145, 220, 0.12);
+        radial-gradient(circle at top right, rgba(22, 103, 165, 0.10), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0)),
+        linear-gradient(180deg, #050e1d, #040914);
+      border: 1px solid rgba(96, 128, 195, 0.12);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.03),
-        0 0 0 1px rgba(0,0,0,0.14);
+        inset 0 1px 0 rgba(255,255,255,0.025),
+        0 0 0 1px rgba(0,0,0,0.18);
+      -webkit-mask-image: -webkit-radial-gradient(white, black);
+      background-clip: padding-box;
       padding: 10px;
       display: grid;
       grid-template-rows: auto auto auto;
       gap: 8px;
-      overflow: hidden;
       contain: layout paint;
     }
 
@@ -241,12 +245,13 @@
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
+      word-break: break-word;
     }
 
     .descriptor-sep {
       width: min(100%, 220px);
       height: 1px;
-      background: rgba(120, 160, 255, 0.14);
+      background: rgba(120, 160, 255, 0.12);
       margin: 1px 0 2px;
       flex-shrink: 0;
     }
@@ -276,7 +281,7 @@
       border-radius: 12px;
       border: 1px solid var(--border);
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
         linear-gradient(180deg, var(--panel), var(--panel-2));
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
       padding: 7px 9px;
@@ -636,7 +641,7 @@
     .forecast-divider {
       width: 18px;
       height: 1px;
-      background: rgba(120, 160, 255, 0.18);
+      background: rgba(120, 160, 255, 0.16);
       border-radius: 999px;
       margin: 1px 0 5px;
       flex-shrink: 0;
@@ -931,18 +936,6 @@
       return { text: 'Overcast', icon: 'overcast' };
     }
 
-    function distanceKm(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const toRad = (d) => d * Math.PI / 180;
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) ** 2;
-      return 2 * R * Math.asin(Math.sqrt(a));
-    }
-
     async function fetchWithTimeout(url, responseType = 'json') {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -1008,6 +1001,18 @@
       const uvClass = getUvClass(uvNow);
       if (uvClass) uvStat.classList.add(uvClass);
       el('uv-value').textContent = Number.isFinite(uvNow) ? String(Math.round(uvNow * 10) / 10) : '—';
+    }
+
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = (d) => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
     }
 
     function mapFeature(feature) {
@@ -1219,83 +1224,13 @@
       }).join('');
     }
 
-    function setAlertsBar(alerts) {
-      const row = el('alerts-row');
-      const title = el('alerts-title');
-      const sub = el('alerts-sub');
-      el('alerts-link').href = ALERTS_URL;
-
-      row.className = 'alerts-row';
-
-      if (!alerts || alerts.status === 'error') {
-        row.classList.add('alert-none');
-        title.textContent = 'Greater Victoria alerts';
-        sub.textContent = 'Click For Full Details';
-        return;
-      }
-
-      if (alerts.count === 0) {
-        row.classList.add('alert-none');
-        title.textContent = 'No alerts in effect';
-        sub.textContent = '';
-        return;
-      }
-
-      const worst = alerts.severity || 'warning';
-      row.classList.add(worst === 'watch' ? 'alert-watch' : 'alert-warning');
-      title.textContent = alerts.headline || 'Active weather alert';
-      sub.textContent = 'Click For Full Details';
-    }
-
-    async function loadAqhi() {
-      try {
-        const obsData = await fetchJson(AQHI_OBS_API_URL);
-        const pickedObs = pickAqhiFeature(obsData?.features || []);
-
-        let pollutantKey = null;
-
-        if (pickedObs) {
-          const pickedTextTasks = [];
-          const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
-          if (ecUrl) pickedTextTasks.push(fetchText(ecUrl).catch(() => ''));
-
-          pickedTextTasks.push(fetchText(TWN_AIR_PROXY_URL).catch(() => ''));
-          pickedTextTasks.push(fetchText(IQAIR_VICTORIA_PROXY_URL).catch(() => ''));
-          pickedTextTasks.push(fetchText(AQICN_VICTORIA_PROXY_URL).catch(() => ''));
-
-          const texts = await Promise.all(pickedTextTasks);
-
-          for (const text of texts) {
-            pollutantKey = classifyPollutantFromText(text) || tryInferPollutantByValues(text);
-            if (pollutantKey) break;
-          }
-
-          if (!pollutantKey) {
-            pollutantKey = getStoredPollutant() || 'unknown';
-          } else {
-            storePollutant(pollutantKey);
-          }
-
-          const obsProps = pickedObs.feature?.properties || {};
-          const obsValue = Number(obsProps.aqhi);
-
-          return {
-            value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-            pollutantKey
-          };
-        }
-
-        return {
-          value: null,
-          pollutantKey: getStoredPollutant() || 'unknown'
-        };
-      } catch (error) {
-        console.warn('AQHI load failed.', error);
-        return {
-          value: null,
-          pollutantKey: getStoredPollutant() || 'unknown'
-        };
-      }
+    function cleanAlertLine(line) {
+      return String(line || '')
+        .replace(/^url source:\s*/i, '')
+        .replace(/^https?:\/\/\S+$/i, '')
+        .replace(/^weather shortcuts$/i, '')
+        .replace(/^more information$/i, '')
+        .trim();
     }
 
     function parseAlerts(text) {
@@ -1310,11 +1245,20 @@
         };
       }
 
-      const lines = clean.split('\n').map((l) => l.trim()).filter(Boolean);
+      const lines = clean
+        .split('\n')
+        .map((l) => cleanAlertLine(l))
+        .filter(Boolean)
+        .filter((line) => {
+          return !/^url source:/i.test(line) &&
+                 !/^https?:\/\//i.test(line) &&
+                 !/weather shortcuts|feedback|about this site|features|share this page|add to favourites/i.test(line);
+        });
 
       const candidates = lines.filter((line) => {
         return /warning|watch|advisory|statement/i.test(line) &&
-               !/learn more|feedback|about this site|features|weather shortcuts/i.test(line);
+               !/^alert •/i.test(line) &&
+               !/^air •/i.test(line);
       });
 
       if (!candidates.length) {
@@ -1355,6 +1299,57 @@
       } catch (error) {
         console.warn('Alerts parse failed.', error);
         return { status: 'error', count: 0 };
+      }
+    }
+
+    async function loadAqhi() {
+      try {
+        const obsData = await fetchJson(AQHI_OBS_API_URL);
+        const pickedObs = pickAqhiFeature(obsData?.features || []);
+
+        let pollutantKey = null;
+
+        if (pickedObs) {
+          const tasks = [];
+          const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
+          if (ecUrl) tasks.push(fetchText(ecUrl).catch(() => ''));
+
+          tasks.push(fetchText(TWN_AIR_PROXY_URL).catch(() => ''));
+          tasks.push(fetchText(IQAIR_VICTORIA_PROXY_URL).catch(() => ''));
+          tasks.push(fetchText(AQICN_VICTORIA_PROXY_URL).catch(() => ''));
+
+          const texts = await Promise.all(tasks);
+
+          for (const text of texts) {
+            pollutantKey = classifyPollutantFromText(text) || tryInferPollutantByValues(text);
+            if (pollutantKey) break;
+          }
+
+          if (!pollutantKey) {
+            pollutantKey = getStoredPollutant() || 'unknown';
+          } else {
+            storePollutant(pollutantKey);
+          }
+
+          const obsProps = pickedObs.feature?.properties || {};
+          const obsValue = Number(obsProps.aqhi);
+
+          return {
+            value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
+            pollutantKey
+          };
+        }
+
+        return {
+          value: null,
+          pollutantKey: getStoredPollutant() || 'unknown'
+        };
+      } catch (error) {
+        console.warn('AQHI load failed.', error);
+        return {
+          value: null,
+          pollutantKey: getStoredPollutant() || 'unknown'
+        };
       }
     }
 
