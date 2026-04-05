@@ -72,7 +72,7 @@
       padding: 10px;
       display: grid;
       grid-template-rows: auto auto auto;
-      gap: 9px;
+      gap: 8px;
       overflow: hidden;
       contain: layout paint;
     }
@@ -113,7 +113,7 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      padding-bottom: 4px;
+      padding-bottom: 2px;
     }
 
     .hero-main {
@@ -251,14 +251,14 @@
 
     .middle {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-columns: repeat(8, minmax(0, 1fr));
       grid-template-areas:
-        "wind wind air air uv uv"
-        "alerts alerts alerts alerts sunset humidity";
+        "wind wind wind air air air uv uv"
+        "alerts alerts alerts alerts sunset sunset humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
-      margin-top: 10px;
+      margin-top: 8px;
       align-items: stretch;
     }
 
@@ -270,11 +270,11 @@
     .slot-humidity { grid-area: humidity; }
 
     .stat {
-      min-height: 60px;
+      min-height: 56px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      padding: 8px 10px;
+      padding: 7px 9px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -287,45 +287,8 @@
       color: var(--text);
     }
 
-    .stat.air-quality.aqhi-low,
-    .stat.uv-low {
-      border-color: var(--aqhi-low-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-low-bg-top), var(--aqhi-low-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
     .stat.air-quality.aqhi-moderate,
-    .stat.uv-moderate {
-      border-color: var(--aqhi-moderate-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-moderate-bg-top), var(--aqhi-moderate-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.air-quality.aqhi-high,
-    .stat.uv-high {
-      border-color: var(--aqhi-high-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-high-bg-top), var(--aqhi-high-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.air-quality.aqhi-veryhigh,
-    .stat.uv-veryhigh {
-      border-color: var(--aqhi-veryhigh-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-veryhigh-bg-top), var(--aqhi-veryhigh-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.wind-low {
-      border-color: var(--aqhi-low-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-low-bg-top), var(--aqhi-low-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
+    .stat.uv-moderate,
     .stat.wind-moderate {
       border-color: var(--aqhi-moderate-border);
       background:
@@ -333,6 +296,8 @@
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
+    .stat.air-quality.aqhi-high,
+    .stat.uv-high,
     .stat.wind-high {
       border-color: var(--aqhi-high-border);
       background:
@@ -340,6 +305,8 @@
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
+    .stat.air-quality.aqhi-veryhigh,
+    .stat.uv-veryhigh,
     .stat.wind-veryhigh {
       border-color: var(--aqhi-veryhigh-border);
       background:
@@ -353,7 +320,7 @@
       text-transform: uppercase;
       letter-spacing: 0.78px;
       color: var(--muted);
-      margin-bottom: 5px;
+      margin-bottom: 4px;
     }
 
     .stat-value {
@@ -367,9 +334,9 @@
 
     .stat-sub {
       font-size: 11px;
-      line-height: 1.14;
+      line-height: 1.12;
       color: var(--muted);
-      margin-top: 4px;
+      margin-top: 3px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -392,7 +359,7 @@
     }
 
     .wind-unit {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       line-height: 1;
       color: var(--muted);
@@ -402,11 +369,11 @@
       top: -1px;
     }
 
-    .aqhi-health-label {
+    .aqhi-risk-label {
       font-size: 10px;
       line-height: 1;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -417,7 +384,7 @@
       align-items: center;
       gap: 8px;
       min-width: 0;
-      margin-top: 1px;
+      margin-top: 0;
     }
 
     .aqhi-badge {
@@ -448,22 +415,24 @@
       min-width: 0;
     }
 
-    .stat.air-quality.aqhi-low .aqhi-badge { color: var(--aqhi-low-accent); }
     .stat.air-quality.aqhi-moderate .aqhi-badge { color: var(--aqhi-moderate-accent); }
     .stat.air-quality.aqhi-high .aqhi-badge { color: var(--aqhi-high-accent); }
     .stat.air-quality.aqhi-veryhigh .aqhi-badge { color: var(--aqhi-veryhigh-accent); }
 
-    #sunset {
-      font-size: 15px;
-      letter-spacing: -0.1px;
-    }
-
-    #humidity {
-      font-size: 15px;
+    .uv-center {
+      align-items: center;
+      text-align: center;
     }
 
     #uv-value {
-      font-size: 17px;
+      font-size: 18px;
+      width: 100%;
+      text-align: center;
+    }
+
+    #sunset, #humidity {
+      font-size: 15px;
+      letter-spacing: -0.1px;
     }
 
     .alerts-link {
@@ -666,11 +635,11 @@
     }
 
     @media (max-height: 610px) {
-      .card { gap: 8px; }
+      .card { gap: 7px; }
       .temp { font-size: 54px; }
       .descriptor-space { min-height: 108px; }
       .middle { gap: 7px; }
-      .stat { min-height: 56px; }
+      .stat { min-height: 52px; padding: 6px 8px; }
       .forecast-day { padding-top: 6px; padding-bottom: 6px; }
     }
   </style>
@@ -719,16 +688,16 @@
         <div class="stat-sub" id="wind-sub">Current wind speed</div>
       </div>
 
-      <div class="stat air-quality aqhi-low slot-air" id="aqhi-stat">
+      <div class="stat air-quality slot-air" id="aqhi-stat">
         <div class="stat-label">Air Quality</div>
-        <div class="aqhi-health-label">Health Risk</div>
+        <div class="aqhi-risk-label">Risk</div>
         <div class="aqhi-main">
           <div class="aqhi-badge" id="aqhi-badge">--</div>
           <div class="aqhi-risk" id="aqhi-risk">Loading</div>
         </div>
       </div>
 
-      <div class="stat slot-uv" id="uv-stat">
+      <div class="stat slot-uv uv-center" id="uv-stat">
         <div class="stat-label">UV</div>
         <div class="stat-value" id="uv-value">--</div>
       </div>
@@ -775,7 +744,7 @@
       `&longitude=${LON}` +
       `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,precipitation_probability,uv_index` +
       `&hourly=weather_code,is_day` +
-      `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset,uv_index_max` +
+      `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset` +
       `&timezone=${encodeURIComponent(TZ)}` +
       `&forecast_days=5` +
       `&cell_selection=land`;
@@ -870,22 +839,21 @@
     }
 
     function getWindClass(speed) {
-      if (speed < 5) return '';
-      if (speed < 15) return 'wind-low';
+      if (!Number.isFinite(speed) || speed < 15) return '';
       if (speed < 30) return 'wind-moderate';
       if (speed < 50) return 'wind-high';
       return 'wind-veryhigh';
     }
 
     function getAqhiClass(value) {
-      if (value <= 3) return 'aqhi-low';
+      if (!Number.isFinite(value) || value <= 3) return '';
       if (value <= 6) return 'aqhi-moderate';
       if (value <= 9) return 'aqhi-high';
       return 'aqhi-veryhigh';
     }
 
     function getUvClass(value) {
-      if (!Number.isFinite(value) || value < 3) return 'uv-low';
+      if (!Number.isFinite(value) || value < 3) return '';
       if (value < 6) return 'uv-moderate';
       if (value < 8) return 'uv-high';
       return 'uv-veryhigh';
@@ -975,8 +943,9 @@
 
     function setUv(uvNow) {
       const uvStat = el('uv-stat');
-      uvStat.className = 'stat slot-uv';
-      uvStat.classList.add(getUvClass(uvNow));
+      uvStat.className = 'stat slot-uv uv-center';
+      const uvClass = getUvClass(uvNow);
+      if (uvClass) uvStat.classList.add(uvClass);
       el('uv-value').textContent = Number.isFinite(uvNow) ? String(Math.round(uvNow * 10) / 10) : '—';
     }
 
@@ -1074,13 +1043,13 @@
       aqhiStat.className = 'stat air-quality slot-air';
 
       const currentValue = Number(aqhiData?.value);
+      const aqClass = getAqhiClass(currentValue);
+      if (aqClass) aqhiStat.classList.add(aqClass);
 
       if (Number.isFinite(currentValue)) {
-        aqhiStat.classList.add(getAqhiClass(currentValue));
         el('aqhi-risk').textContent = aqhiRiskLabel(currentValue);
         el('aqhi-badge').textContent = formatAqhiValue(currentValue);
       } else {
-        aqhiStat.classList.add('aqhi-low');
         el('aqhi-risk').textContent = 'Unavailable';
         el('aqhi-badge').textContent = '—';
       }
@@ -1114,41 +1083,45 @@
       el('descriptor-space').innerHTML = items.join('');
     }
 
-    function getMiddayWeatherMeta(hourly, date) {
+    function getDominantDayWeatherMeta(hourly, date) {
       if (!hourly?.time || !hourly?.weather_code) {
         return weatherMeta(3, true);
       }
 
-      const targetPrefix = `${date}T12:00`;
-      let index = hourly.time.findIndex(t => String(t).startsWith(targetPrefix));
+      const start = `${date}T06:00`;
+      const end = `${date}T18:00`;
 
-      if (index === -1) {
-        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T13:00`));
-      }
-      if (index === -1) {
-        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T11:00`));
-      }
-      if (index === -1) {
-        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T14:00`));
-      }
-      if (index === -1) {
-        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T10:00`));
+      const counts = new Map();
+
+      for (let i = 0; i < hourly.time.length; i++) {
+        const t = String(hourly.time[i]);
+        if (t >= start && t <= end) {
+          const code = Number(hourly.weather_code[i]);
+          counts.set(code, (counts.get(code) || 0) + 1);
+        }
       }
 
-      if (index === -1) {
+      if (!counts.size) {
         return weatherMeta(3, true);
       }
 
-      return weatherMeta(
-        Number(hourly.weather_code[index]),
-        Boolean(hourly.is_day?.[index] ?? true)
-      );
+      let bestCode = 3;
+      let bestCount = -1;
+
+      for (const [code, count] of counts.entries()) {
+        if (count > bestCount) {
+          bestCode = code;
+          bestCount = count;
+        }
+      }
+
+      return weatherMeta(bestCode, true);
     }
 
     function renderForecast(daily, hourly) {
       const forecast = el('forecast');
       forecast.innerHTML = daily.time.map((date, i) => {
-        const meta = getMiddayWeatherMeta(hourly, date);
+        const meta = getDominantDayWeatherMeta(hourly, date);
         const precip = daily.precipitation_probability_max?.[i];
         return `
           <div class="forecast-day">
