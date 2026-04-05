@@ -59,9 +59,7 @@
       overflow: hidden;
     }
 
-    body {
-      padding: 0;
-    }
+    body { padding: 0; }
 
     .card {
       width: 100%;
@@ -73,7 +71,7 @@
       border: none;
       padding: 10px;
       display: grid;
-      grid-template-rows: auto auto minmax(58px, 1fr) auto;
+      grid-template-rows: auto auto minmax(70px, 1fr) auto;
       gap: 6px;
       overflow: hidden;
       contain: layout paint;
@@ -252,7 +250,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: 1.06fr 1.16fr 1.02fr 0.76fr;
+      grid-template-columns: 1.02fr 1.20fr 1.03fr 0.75fr;
       gap: 7px;
       min-height: 0;
     }
@@ -441,7 +439,7 @@
       gap: 10px;
       width: 100%;
       height: 100%;
-      min-height: 58px;
+      min-height: 70px;
       border-radius: 12px;
       border: 1px solid var(--alert-none-border);
       background:
@@ -695,7 +693,7 @@
         <div class="alerts-dot"></div>
         <div class="alerts-text">
           <div class="alerts-title" id="alerts-title">Greater Victoria alerts</div>
-          <div class="alerts-sub" id="alerts-sub">Checking official alerts</div>
+          <div class="alerts-sub" id="alerts-sub"></div>
         </div>
       </div>
     </a>
@@ -707,8 +705,6 @@
     const LAT = 48.4621;
     const LON = -123.4689;
     const TZ = 'America/Vancouver';
-
-    const LOCATION_TITLE = 'View Royal';
     const AQHI_RADIUS_KM = 5;
 
     const ALERTS_URL = 'https://weather.gc.ca/warnings/report_e.html?bc43=';
@@ -727,12 +723,8 @@
       `https://api.weather.gc.ca/collections/aqhi-observations-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
 
     const AQHI_PAGE_MAP = {
-      'westshore': {
-        proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html'
-      },
-      'victoria/saanich': {
-        proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
-      }
+      westshore: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html',
+      victoria_saanich: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
     };
 
     const TWN_AIR_PROXY_URL = 'https://r.jina.ai/http://www.theweathernetwork.com/en/city/ca/british-columbia/victoria/air-quality';
@@ -918,14 +910,6 @@
       };
     }
 
-    function getAqhiPageInfo(nameLower) {
-      if (nameLower.includes('westshore')) return AQHI_PAGE_MAP['westshore'];
-      if (nameLower.includes('victoria/saanich') || (nameLower.includes('victoria') && nameLower.includes('saanich'))) {
-        return AQHI_PAGE_MAP['victoria/saanich'];
-      }
-      return null;
-    }
-
     function pickAqhiFeature(features) {
       if (!Array.isArray(features) || !features.length) return null;
 
@@ -947,43 +931,48 @@
       return withinRadius[0] || null;
     }
 
+    function getAqhiPageUrl(nameLower) {
+      if (nameLower.includes('westshore')) return AQHI_PAGE_MAP.westshore;
+      if (nameLower.includes('victoria/saanich') || (nameLower.includes('victoria') && nameLower.includes('saanich'))) {
+        return AQHI_PAGE_MAP.victoria_saanich;
+      }
+      return null;
+    }
+
     function classifyPollutantFromText(text) {
       const lower = String(text || '').toLowerCase();
+
+      if (
+        lower.includes('primary pollutant') && (lower.includes('pm2.5') || lower.includes('pm 2.5'))
+      ) return 'particles';
+
+      if (
+        lower.includes('primary pollutant') && (lower.includes('ozone') || lower.includes('o₃') || lower.includes('o3'))
+      ) return 'ozone';
+
+      if (
+        lower.includes('primary pollutant') && (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2'))
+      ) return 'no2';
 
       if (
         lower.includes('pm2.5') ||
         lower.includes('pm 2.5') ||
         lower.includes('fine particles') ||
-        lower.includes('particulate matter') ||
-        lower.includes('wildfire smoke') ||
-        lower.includes('forest fire smoke') ||
-        lower.includes('fire smoke') ||
-        lower.includes('wood smoke') ||
-        lower.includes('smoke') ||
-        lower.includes('dust') ||
-        lower.includes('soot')
-      ) {
-        return 'particles';
-      }
+        lower.includes('particulate matter')
+      ) return 'particles';
 
       if (
-        lower.includes('ozone') ||
-        lower.includes('o₃') ||
-        lower.includes('o3') ||
-        lower.includes('smog')
-      ) {
-        return 'ozone';
-      }
+        lower.includes('ground-level ozone') ||
+        lower.includes('ozone (o₃)') ||
+        lower.includes('ozone (o3)') ||
+        lower.includes('ozone')
+      ) return 'ozone';
 
       if (
         lower.includes('nitrogen dioxide') ||
         lower.includes('no₂') ||
-        lower.includes('no2') ||
-        lower.includes('traffic pollution') ||
-        lower.includes('vehicle exhaust')
-      ) {
-        return 'no2';
-      }
+        lower.includes('no2')
+      ) return 'no2';
 
       return null;
     }
@@ -1084,13 +1073,10 @@
     async function loadAqhi() {
       try {
         const obsData = await fetchJson(AQHI_OBS_API_URL);
-
         const pickedObs = pickAqhiFeature(obsData?.features || []);
+
         if (!pickedObs) {
-          return {
-            value: null,
-            pollutantKey: 'unknown'
-          };
+          return { value: null, pollutantKey: 'unknown' };
         }
 
         const obsProps = pickedObs.feature?.properties || {};
@@ -1098,10 +1084,10 @@
 
         let pollutantKey = null;
 
-        const pageInfo = getAqhiPageInfo(pickedObs.nameLower);
-        if (pageInfo?.proxyUrl) {
+        const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
+        if (ecUrl) {
           try {
-            const ecText = await fetchText(pageInfo.proxyUrl);
+            const ecText = await fetchText(ecUrl);
             pollutantKey = classifyPollutantFromText(ecText);
           } catch (error) {
             console.warn('EC AQ cause fetch failed.', error);
@@ -1117,13 +1103,9 @@
           }
         }
 
-        if (!pollutantKey) {
-          pollutantKey = 'unknown';
-        }
-
         return {
           value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-          pollutantKey
+          pollutantKey: pollutantKey || 'unknown'
         };
       } catch (error) {
         console.warn('AQHI load failed.', error);
@@ -1206,7 +1188,7 @@
         const daily = weather.daily;
         const currentMeta = weatherMeta(current.weather_code, Boolean(current.is_day));
 
-        el('title').textContent = LOCATION_TITLE;
+        el('title').textContent = 'View Royal';
         el('updated').textContent = `Updated ${formatUpdated()}`;
         el('temp').textContent = roundTemp(current.temperature_2m);
         el('temp-icon').src = iconUrl(currentMeta.icon);
