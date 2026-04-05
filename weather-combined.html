@@ -251,10 +251,10 @@
 
     .middle {
       display: grid;
-      grid-template-columns: repeat(10, minmax(0, 1fr));
+      grid-template-columns: repeat(9, minmax(0, 1fr));
       grid-template-areas:
-        "wind wind wind air air air air uv uv uv"
-        "alerts alerts alerts alerts sunset sunset sunset humidity humidity humidity";
+        "wind wind wind air air air air uv uv"
+        "alerts alerts alerts alerts alerts sunset sunset humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
@@ -378,9 +378,19 @@
       top: -1px;
     }
 
-    .aqhi-risk-label {
+    .wind-dir {
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.05;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .aqhi-title-line {
       font-size: 10px;
       line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.78px;
       color: var(--muted);
       margin-bottom: 5px;
       white-space: nowrap;
@@ -388,12 +398,17 @@
       text-overflow: ellipsis;
     }
 
-    .aqhi-main {
+    .aqhi-badge-row {
       display: flex;
       align-items: center;
-      gap: 8px;
       min-width: 0;
-      margin-top: 0;
+      margin-bottom: 4px;
+    }
+
+    .aqhi-risk-row {
+      display: flex;
+      align-items: center;
+      min-width: 0;
     }
 
     .aqhi-badge {
@@ -698,17 +713,19 @@
       <div class="stat slot-wind" id="wind-stat">
         <div class="stat-label">Wind</div>
         <div class="wind-value-wrap">
-          <span class="wind-main" id="wind-main">-- --</span>
+          <span class="wind-main" id="wind-main">--</span>
           <span class="wind-unit" id="wind-unit">km/h</span>
+          <span class="wind-dir" id="wind-dir">--</span>
         </div>
         <div class="stat-sub" id="wind-sub">Current wind speed</div>
       </div>
 
       <div class="stat air-quality slot-air" id="aqhi-stat">
-        <div class="stat-label">Air Quality</div>
-        <div class="aqhi-risk-label">Risk</div>
-        <div class="aqhi-main">
+        <div class="aqhi-title-line">Air Quality Risk</div>
+        <div class="aqhi-badge-row">
           <div class="aqhi-badge" id="aqhi-badge">--</div>
+        </div>
+        <div class="aqhi-risk-row">
           <div class="aqhi-risk" id="aqhi-risk">Loading</div>
         </div>
       </div>
@@ -956,7 +973,8 @@
       if (windClass) windStat.classList.add(windClass);
 
       const dir = compassDirection(dirDeg);
-      el('wind-main').textContent = `${Math.round(speed)} ${dir}`;
+      el('wind-main').textContent = `${Math.round(speed)}`;
+      el('wind-dir').textContent = `${dir}`;
       el('wind-sub').textContent = gust && gust >= speed + 3
         ? `Gust ${Math.round(gust)} km/h`
         : speed < 5 ? 'Calm' : 'Steady';
