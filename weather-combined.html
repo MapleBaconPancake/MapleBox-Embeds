@@ -270,11 +270,11 @@
     .slot-humidity { grid-area: humidity; }
 
     .stat {
-      min-height: 74px;
+      min-height: 60px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      padding: 10px 11px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -319,13 +319,6 @@
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
-    .stat.air-quality .stat-label,
-    .stat.air-quality .stat-sub {
-      color: var(--muted);
-      opacity: 1;
-      margin-top: 0;
-    }
-
     .stat.wind-low {
       border-color: var(--aqhi-low-border);
       background:
@@ -360,11 +353,11 @@
       text-transform: uppercase;
       letter-spacing: 0.78px;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .stat-value {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
       line-height: 1.05;
       white-space: nowrap;
@@ -376,25 +369,55 @@
       font-size: 11px;
       line-height: 1.14;
       color: var(--muted);
-      margin-top: 5px;
+      margin-top: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .aqhi-row {
+    .wind-value-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      min-width: 0;
+      flex-wrap: nowrap;
+    }
+
+    .wind-main {
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.05;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .wind-unit {
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      position: relative;
+      top: -1px;
+    }
+
+    .aqhi-health-label {
+      font-size: 10px;
+      line-height: 1;
+      color: var(--muted);
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .aqhi-main {
       display: flex;
       align-items: center;
       gap: 8px;
       min-width: 0;
-    }
-
-    .aqhi-subrow {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 5px;
-      min-width: 0;
+      margin-top: 1px;
     }
 
     .aqhi-badge {
@@ -422,6 +445,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--text);
+      min-width: 0;
     }
 
     .stat.air-quality.aqhi-low .aqhi-badge { color: var(--aqhi-low-accent); }
@@ -430,8 +454,16 @@
     .stat.air-quality.aqhi-veryhigh .aqhi-badge { color: var(--aqhi-veryhigh-accent); }
 
     #sunset {
-      font-size: 16px;
-      letter-spacing: -0.2px;
+      font-size: 15px;
+      letter-spacing: -0.1px;
+    }
+
+    #humidity {
+      font-size: 15px;
+    }
+
+    #uv-value {
+      font-size: 17px;
     }
 
     .alerts-link {
@@ -638,7 +670,7 @@
       .temp { font-size: 54px; }
       .descriptor-space { min-height: 108px; }
       .middle { gap: 7px; }
-      .stat { min-height: 68px; }
+      .stat { min-height: 56px; }
       .forecast-day { padding-top: 6px; padding-bottom: 6px; }
     }
   </style>
@@ -680,25 +712,25 @@
     <div class="middle">
       <div class="stat slot-wind" id="wind-stat">
         <div class="stat-label">Wind</div>
-        <div class="stat-value" id="wind-value">-- km/h</div>
+        <div class="wind-value-wrap">
+          <span class="wind-main" id="wind-main">-- --</span>
+          <span class="wind-unit" id="wind-unit">km/h</span>
+        </div>
         <div class="stat-sub" id="wind-sub">Current wind speed</div>
       </div>
 
       <div class="stat air-quality aqhi-low slot-air" id="aqhi-stat">
         <div class="stat-label">Air Quality</div>
-        <div class="aqhi-row">
-          <div class="aqhi-risk" id="aqhi-risk">Loading</div>
-        </div>
-        <div class="aqhi-subrow">
+        <div class="aqhi-health-label">Health Risk</div>
+        <div class="aqhi-main">
           <div class="aqhi-badge" id="aqhi-badge">--</div>
-          <div class="stat-sub">Health Risk</div>
+          <div class="aqhi-risk" id="aqhi-risk">Loading</div>
         </div>
       </div>
 
       <div class="stat slot-uv" id="uv-stat">
         <div class="stat-label">UV</div>
         <div class="stat-value" id="uv-value">--</div>
-        <div class="stat-sub" id="uv-sub">Current</div>
       </div>
 
       <div class="slot-alerts">
@@ -742,7 +774,8 @@
       `?latitude=${LAT}` +
       `&longitude=${LON}` +
       `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,precipitation_probability,uv_index` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset,uv_index_max` +
+      `&hourly=weather_code,is_day` +
+      `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset,uv_index_max` +
       `&timezone=${encodeURIComponent(TZ)}` +
       `&forecast_days=5` +
       `&cell_selection=land`;
@@ -858,15 +891,6 @@
       return 'uv-veryhigh';
     }
 
-    function getUvLabel(value) {
-      if (!Number.isFinite(value)) return 'Unavailable';
-      if (value < 3) return 'Low';
-      if (value < 6) return 'Moderate';
-      if (value < 8) return 'High';
-      if (value < 11) return 'Very High';
-      return 'Extreme';
-    }
-
     function formatAqhiValue(value) {
       if (!Number.isFinite(value)) return '—';
       return value >= 10 ? '10+' : String(Math.round(value));
@@ -943,24 +967,17 @@
       if (windClass) windStat.classList.add(windClass);
 
       const dir = compassDirection(dirDeg);
-      el('wind-value').textContent = `${Math.round(speed)} km/h ${dir}`;
+      el('wind-main').textContent = `${Math.round(speed)} ${dir}`;
       el('wind-sub').textContent = gust && gust >= speed + 3
         ? `Gust ${Math.round(gust)} km/h`
         : speed < 5 ? 'Calm' : 'Steady';
     }
 
-    function setUv(uvNow, uvMax) {
+    function setUv(uvNow) {
       const uvStat = el('uv-stat');
       uvStat.className = 'stat slot-uv';
       uvStat.classList.add(getUvClass(uvNow));
-
-      const roundedNow = Number.isFinite(uvNow) ? Math.round(uvNow * 10) / 10 : null;
-      const roundedMax = Number.isFinite(uvMax) ? Math.round(uvMax * 10) / 10 : null;
-
-      el('uv-value').textContent = roundedNow !== null ? String(roundedNow) : '—';
-      el('uv-sub').textContent = roundedMax !== null
-        ? `${getUvLabel(roundedNow)} • Max ${roundedMax}`
-        : getUvLabel(roundedNow);
+      el('uv-value').textContent = Number.isFinite(uvNow) ? String(Math.round(uvNow * 10) / 10) : '—';
     }
 
     function mapFeature(feature) {
@@ -1097,10 +1114,41 @@
       el('descriptor-space').innerHTML = items.join('');
     }
 
-    function renderForecast(daily) {
+    function getMiddayWeatherMeta(hourly, date) {
+      if (!hourly?.time || !hourly?.weather_code) {
+        return weatherMeta(3, true);
+      }
+
+      const targetPrefix = `${date}T12:00`;
+      let index = hourly.time.findIndex(t => String(t).startsWith(targetPrefix));
+
+      if (index === -1) {
+        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T13:00`));
+      }
+      if (index === -1) {
+        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T11:00`));
+      }
+      if (index === -1) {
+        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T14:00`));
+      }
+      if (index === -1) {
+        index = hourly.time.findIndex(t => String(t).startsWith(`${date}T10:00`));
+      }
+
+      if (index === -1) {
+        return weatherMeta(3, true);
+      }
+
+      return weatherMeta(
+        Number(hourly.weather_code[index]),
+        Boolean(hourly.is_day?.[index] ?? true)
+      );
+    }
+
+    function renderForecast(daily, hourly) {
       const forecast = el('forecast');
       forecast.innerHTML = daily.time.map((date, i) => {
-        const meta = weatherMeta(daily.weather_code[i], true);
+        const meta = getMiddayWeatherMeta(hourly, date);
         const precip = daily.precipitation_probability_max?.[i];
         return `
           <div class="forecast-day">
@@ -1258,6 +1306,7 @@
     function applyWeather(weather) {
       const current = weather.current;
       const daily = weather.daily;
+      const hourly = weather.hourly;
       const currentMeta = weatherMeta(current.weather_code, Boolean(current.is_day));
 
       el('title').textContent = 'View Royal';
@@ -1278,8 +1327,8 @@
       el('sunset').textContent = formatShortTime(daily.sunset[0]);
 
       setWind(current.wind_speed_10m, current.wind_gusts_10m, current.wind_direction_10m);
-      setUv(current.uv_index, daily.uv_index_max?.[0]);
-      renderForecast(daily);
+      setUv(current.uv_index);
+      renderForecast(daily, hourly);
     }
 
     async function loadLiveWidget() {
