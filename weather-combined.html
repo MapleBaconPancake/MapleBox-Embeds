@@ -53,25 +53,27 @@
       margin: 0;
       width: 100%;
       height: 100%;
-      background: #020817;
+      background: transparent;
       color: var(--text);
       font-family: Inter, "Segoe UI", Arial, sans-serif;
       overflow: hidden;
     }
 
-    body { padding: 8px; }
+    body {
+      padding: 0;
+    }
 
     .card {
       width: 100%;
-      height: calc(100vh - 16px);
+      height: 100vh;
       border-radius: 0;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
         linear-gradient(180deg, #07122b, #040b1f);
-      border: 1px solid var(--border);
+      border: none;
       padding: 10px;
       display: grid;
-      grid-template-rows: auto auto auto minmax(0, 1fr);
+      grid-template-rows: auto auto minmax(58px, 1fr) auto;
       gap: 6px;
       overflow: hidden;
       contain: layout paint;
@@ -426,18 +428,20 @@
     }
 
     .alerts-link {
-      display: block;
+      display: flex;
+      min-width: 0;
+      min-height: 0;
       text-decoration: none;
       color: inherit;
-      min-width: 0;
     }
 
     .alerts-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      min-height: 68px;
-      height: 68px;
+      width: 100%;
+      height: 100%;
+      min-height: 58px;
       border-radius: 12px;
       border: 1px solid var(--alert-none-border);
       background:
@@ -493,7 +497,6 @@
     .alerts-text {
       min-width: 0;
       flex: 1;
-      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -523,7 +526,6 @@
       grid-template-columns: repeat(5, 1fr);
       gap: 6px;
       min-height: 0;
-      margin-top: 0;
       align-self: end;
     }
 
@@ -738,6 +740,25 @@
 
     const el = (id) => document.getElementById(id);
 
+    const POLLUTANT_META = {
+      particles: {
+        label: 'Particles',
+        desc: 'Smoke, dust, soot'
+      },
+      ozone: {
+        label: 'Ozone (O₃)',
+        desc: 'Smog / sunny pollution'
+      },
+      no2: {
+        label: 'NO₂',
+        desc: 'Traffic / fuel exhaust'
+      },
+      unknown: {
+        label: 'Cause unknown',
+        desc: 'No clear pollutant posted'
+      }
+    };
+
     function roundTemp(value) {
       return `${Math.round(value)}°`;
     }
@@ -926,44 +947,42 @@
       return withinRadius[0] || null;
     }
 
-    function scanCauseKeywords(text) {
+    function classifyPollutantFromText(text) {
       const lower = String(text || '').toLowerCase();
 
-      const keywordMap = [
-        { patterns: ['wildfire smoke', 'forest fire smoke', 'fire smoke'], short: 'Smoke' },
-        { patterns: ['wood smoke'], short: 'Smoke' },
-        { patterns: ['smoke'], short: 'Smoke' },
-        { patterns: ['pollen'], short: 'Pollen' },
-        { patterns: ['smog'], short: 'Smog' },
-        { patterns: ['ozone'], short: 'Smog' },
-        { patterns: ['fine particles', 'particulate matter', 'pm2.5', 'pm 2.5'], short: 'Particles' },
-        { patterns: ['dust'], short: 'Dust' },
-        { patterns: ['traffic', 'nitrogen dioxide', 'no2'], short: 'Traffic' }
-      ];
-
-      for (const entry of keywordMap) {
-        if (entry.patterns.some((p) => lower.includes(p))) {
-          return entry.short;
-        }
+      if (
+        lower.includes('pm2.5') ||
+        lower.includes('pm 2.5') ||
+        lower.includes('fine particles') ||
+        lower.includes('particulate matter') ||
+        lower.includes('wildfire smoke') ||
+        lower.includes('forest fire smoke') ||
+        lower.includes('fire smoke') ||
+        lower.includes('wood smoke') ||
+        lower.includes('smoke') ||
+        lower.includes('dust') ||
+        lower.includes('soot')
+      ) {
+        return 'particles';
       }
 
-      return null;
-    }
+      if (
+        lower.includes('ozone') ||
+        lower.includes('o₃') ||
+        lower.includes('o3') ||
+        lower.includes('smog')
+      ) {
+        return 'ozone';
+      }
 
-    function parseTwnCause(text) {
-      const keyword = scanCauseKeywords(text);
-      if (keyword) return keyword;
-
-      const clean = String(text || '').replace(/\r/g, ' ');
-      const pairings = [
-        { re: /pollen[^.]{0,90}/i, short: 'Pollen' },
-        { re: /smoke[^.]{0,90}/i, short: 'Smoke' },
-        { re: /smog[^.]{0,90}/i, short: 'Smog' },
-        { re: /dust[^.]{0,90}/i, short: 'Dust' }
-      ];
-
-      for (const item of pairings) {
-        if (item.re.test(clean)) return item.short;
+      if (
+        lower.includes('nitrogen dioxide') ||
+        lower.includes('no₂') ||
+        lower.includes('no2') ||
+        lower.includes('traffic pollution') ||
+        lower.includes('vehicle exhaust')
+      ) {
+        return 'no2';
       }
 
       return null;
@@ -998,13 +1017,16 @@
         `);
       }
 
-      const causeText = aqhiData?.causeShort || 'Cause unknown';
+      const meta = POLLUTANT_META[aqhiData?.pollutantKey || 'unknown'];
 
-      if (items.length) items.push('<div class="descriptor-sep"></div>');
+      if (items.length) {
+        items.push('<div class="descriptor-sep"></div>');
+      }
 
       items.push(`
         <div class="descriptor-item">
-          <div class="descriptor-title">Air • ${escapeHtml(causeText)}</div>
+          <div class="descriptor-title">Air • ${escapeHtml(meta.label)}</div>
+          <div class="descriptor-sub">${escapeHtml(meta.desc)}</div>
         </div>
       `);
 
@@ -1067,52 +1089,47 @@
         if (!pickedObs) {
           return {
             value: null,
-            causeShort: 'Cause unknown'
+            pollutantKey: 'unknown'
           };
         }
 
         const obsProps = pickedObs.feature?.properties || {};
         const obsValue = Number(obsProps.aqhi);
 
-        let causeShort = null;
+        let pollutantKey = null;
 
         const pageInfo = getAqhiPageInfo(pickedObs.nameLower);
         if (pageInfo?.proxyUrl) {
           try {
             const ecText = await fetchText(pageInfo.proxyUrl);
-            causeShort = scanCauseKeywords(ecText);
+            pollutantKey = classifyPollutantFromText(ecText);
           } catch (error) {
             console.warn('EC AQ cause fetch failed.', error);
           }
         }
 
-        if (!causeShort) {
+        if (!pollutantKey) {
           try {
             const twnText = await fetchText(TWN_AIR_PROXY_URL);
-            causeShort = parseTwnCause(twnText);
+            pollutantKey = classifyPollutantFromText(twnText);
           } catch (error) {
             console.warn('TWN AQ cause fetch failed.', error);
           }
         }
 
-        if (!causeShort) {
-          const risk = aqhiRiskLabel(Math.round(obsValue));
-          if (risk === 'Low') causeShort = 'Low pollution';
-          else if (risk === 'Moderate') causeShort = 'Moderate pollution';
-          else if (risk === 'High') causeShort = 'High pollution';
-          else if (risk === 'Very High') causeShort = 'Heavy pollution';
-          else causeShort = 'Cause unknown';
+        if (!pollutantKey) {
+          pollutantKey = 'unknown';
         }
 
         return {
           value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-          causeShort
+          pollutantKey
         };
       } catch (error) {
         console.warn('AQHI load failed.', error);
         return {
           value: null,
-          causeShort: 'Cause unknown'
+          pollutantKey: 'unknown'
         };
       }
     }
