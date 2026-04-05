@@ -563,7 +563,6 @@
       border-right: 10px solid transparent;
       border-bottom: 18px solid var(--alert-red-icon);
       transform: translateY(-1px);
-      filter: drop-shadow(0 0 0 rgba(225, 6, 0, 0.12));
     }
 
     .alerts-indicator.alert-yellow-icon::before,
@@ -1025,10 +1024,6 @@
     const fetchText = (url) => fetchWithTimeout(url, 'text');
     const fetchJson = (url) => fetchWithTimeout(url, 'json');
 
-    function proxifyForJina(url) {
-      return `https://r.jina.ai/http://${String(url).replace(/^https?:\/\//i, '')}`;
-    }
-
     function setWind(speed, gust, dirDeg) {
       const windStat = el('wind-stat');
       windStat.className = 'stat slot-wind';
@@ -1219,102 +1214,69 @@
       }).join('');
     }
 
-    function normalizeAlertText(text) {
-      return String(text || '')
-        .replace(/\r/g, '\n')
-        .replace(/\u00a0/g, ' ')
-        .replace(/[ \t]+/g, ' ')
-        .replace(/\n{3,}/g, '\n\n');
-    }
-
-    function cleanAlertText(text) {
+    function cleanSingleLine(text) {
       return String(text || '')
         .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, '$1')
         .replace(/https?:\/\/\S+/gi, ' ')
-        .replace(/\*\*/g, ' ')
-        .replace(/^#{1,6}\s*/gm, '')
-        .replace(/^[ \t]*[-•]\s*/gm, '')
-        .replace(/[ \t]+/g, ' ')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-    }
-
-    function cleanSingleLine(text) {
-      return String(text || '')
         .replace(/\*\*/g, ' ')
         .replace(/^#{1,6}\s*/g, '')
         .replace(/\s+/g, ' ')
         .trim();
     }
 
-    function extractAlertLinks(summaryText) {
-      const matches = [...String(summaryText || '').matchAll(/\[([^\]]*(?:warning|watch|advisory|statement)[^\]]*)\]\((https?:\/\/[^)]+)\)/gi)];
-      return matches.map(m => ({
-        text: cleanSingleLine(m[1]),
-        url: m[2]
-      }));
+    function cleanAlertDescription(text) {
+      return String(text || '')
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, '$1')
+        .replace(/https?:\/\/\S+/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
-    function pickBestAlertLink(links) {
-      if (!Array.isArray(links) || !links.length) return null;
-
-      const scored = links.map(link => {
-        const lower = `${link.text} ${link.url}`.toLowerCase();
-        let score = 0;
-
-        if (lower.includes('greater victoria')) score += 120;
-        if (lower.includes('south vancouver island')) score += 70;
-        if (lower.includes('victoria')) score += 40;
-        if (lower.includes('warning')) score += 25;
-        if (lower.includes('watch')) score += 20;
-        if (lower.includes('advisory')) score += 15;
-        if (lower.includes('statement')) score += 10;
-
-        return { ...link, score };
-      });
-
-      scored.sort((a, b) => b.score - a.score);
-      return scored[0];
+    function isTimestampLine(line) {
+      return /\b\d{1,2}:\d{2}\s*(AM|PM)\b/i.test(line) || /\bPDT\b|\bPST\b/i.test(line);
     }
 
-    function extractCoreHeadline(text) {
-      const source = cleanSingleLine(text);
-
-      const patterns = [
-        /Red Warning - [A-Za-z ]+/i,
-        /Orange Warning - [A-Za-z ]+/i,
-        /Yellow Warning - [A-Za-z ]+/i,
-        /Special Weather Statement/i,
-        /Snowfall Warning/i,
-        /Rainfall Warning/i,
-        /Wind Warning/i,
-        /Fog Advisory/i,
-        /Heat Warning/i,
-        /Cold Warning/i,
-        /Thunderstorm Watch/i,
-        /Severe Thunderstorm Warning/i,
-        /Winter Storm Warning/i,
-        /Weather Advisory/i,
-        /Air Quality Statement/i
-      ];
-
-      for (const pattern of patterns) {
-        const match = source.match(pattern);
-        if (match) return match[0];
-      }
-
-      const generic = source.match(/[A-Z][A-Za-z/\- ]+(Warning|Watch|Advisory|Statement)/);
-      return generic ? cleanSingleLine(generic[0]) : source;
+    function looksLikeAlertTitle(line) {
+      return /(warning|watch|advisory|statement)/i.test(line);
     }
 
-    function getAlertSeverity(headline) {
-      if (/warning/i.test(headline)) return 'warning';
-      if (/watch|advisory|statement/i.test(headline)) return 'watch';
-      return 'watch';
+    function extractWeatherTypeFromTitle(title) {
+      const cleaned = cleanSingleLine(title)
+        .replace(/\b(red|orange|yellow)\b\s+/ig, '')
+        .replace(/\bwarning\b/ig, '')
+        .replace(/\bwatch\b/ig, '')
+        .replace(/\badvisory\b/ig, '')
+        .replace(/\bstatement\b/ig, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (/special weather/i.test(title)) return 'Special Statement';
+      if (/air quality/i.test(title)) return 'Air Quality';
+      if (/thunder/i.test(title)) return 'Thunderstorm';
+      if (cleaned) return cleaned;
+      return 'Weather';
     }
 
-    function getAlertLevel(headline, detailText = '') {
-      const lower = `${headline} ${detailText}`.toLowerCase();
+    function buildAlertSummaryFromDescription(desc) {
+      const cleaned = cleanAlertDescription(desc);
+      if (!cleaned) return '';
+
+      const what = cleaned.match(/What:\s*(.*?)(?=\s*When:|\s*Impacts:|\s*Additional information:|$)/i)?.[1]?.trim() || '';
+      const when = cleaned.match(/When:\s*(.*?)(?=\s*Impacts:|\s*Additional information:|$)/i)?.[1]?.trim() || '';
+      const impacts = cleaned.match(/Impacts:\s*(.*?)(?=\s*Additional information:|$)/i)?.[1]?.trim() || '';
+
+      const parts = [];
+      if (what) parts.push(what.replace(/^-+\s*/, ''));
+      if (when) parts.push(when.replace(/^-+\s*/, ''));
+      if (impacts) parts.push(impacts.replace(/^-+\s*/, ''));
+
+      const joined = parts.join(' • ').replace(/\s*-\s*/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!joined) return cleaned.length > 170 ? `${cleaned.slice(0, 167).trim()}…` : cleaned;
+      return joined.length > 170 ? `${joined.slice(0, 167).trim()}…` : joined;
+    }
+
+    function getAlertLevelFromTitle(title) {
+      const lower = String(title || '').toLowerCase();
 
       if (lower.includes('red warning')) return 'red';
       if (lower.includes('orange warning') || lower.includes('orange watch') || lower.includes('orange advisory')) return 'orange';
@@ -1327,64 +1289,15 @@
       return 'yellow';
     }
 
-    function getWeatherType(headline, detailText = '') {
-      const lower = `${headline} ${detailText}`.toLowerCase();
-
-      if (lower.includes('wind')) return 'Wind';
-      if (lower.includes('thunder')) return 'Thunderstorm';
-      if (lower.includes('storm')) return 'Storm';
-      if (lower.includes('snow')) return 'Snow';
-      if (lower.includes('rain')) return 'Rain';
-      if (lower.includes('fog')) return 'Fog';
-      if (lower.includes('heat')) return 'Heat';
-      if (lower.includes('cold') || lower.includes('freeze') || lower.includes('arctic')) return 'Cold';
-      if (lower.includes('air quality')) return 'Air Quality';
-      if (lower.includes('special weather statement')) return 'Special Statement';
-      if (/warning/i.test(headline)) return 'Warning';
-      if (/watch/i.test(headline)) return 'Watch';
-      if (/advisory/i.test(headline)) return 'Advisory';
-      return 'Weather';
+    function getSeverityFromLevel(level) {
+      if (level === 'red') return 'warning';
+      if (level === 'orange') return 'watch';
+      if (level === 'yellow') return 'watch';
+      return 'none';
     }
 
-    function extractSection(detailText, sectionName) {
-      const cleaned = normalizeAlertText(detailText);
-      const regex = new RegExp(`${sectionName}:\\s*([\\s\\S]*?)(?=\\n\\s*(?:What|When|Impacts?|Hazards?|Remarks?|Additional information|###|$):|$)`, 'i');
-      const match = cleaned.match(regex);
-      if (!match) return '';
-
-      return match[1]
-        .split('\n')
-        .map(line => line.replace(/^[ \t]*[-•]\s*/, '').trim())
-        .filter(Boolean)
-        .join(' ');
-    }
-
-    function shortenSentence(text, maxLen = 95) {
-      const cleaned = cleanSingleLine(text).replace(/\.+$/,'');
-      if (!cleaned) return '';
-      if (cleaned.length <= maxLen) return cleaned;
-      const cut = cleaned.slice(0, maxLen);
-      const lastSpace = cut.lastIndexOf(' ');
-      return `${(lastSpace > 50 ? cut.slice(0, lastSpace) : cut).trim()}…`;
-    }
-
-    function buildAlertSummary(detailText, headline) {
-      const what = extractSection(detailText, 'What');
-      const when = extractSection(detailText, 'When');
-      const impacts = extractSection(detailText, 'Impacts');
-
-      const parts = [];
-      if (what) parts.push(shortenSentence(what, 80));
-      if (when) parts.push(shortenSentence(when, 70));
-      if (impacts) parts.push(shortenSentence(impacts, 95));
-
-      if (parts.length) return parts.join(' • ');
-      return shortenSentence(headline, 120);
-    }
-
-    function parseAlertsFromSummaryOnly(summaryText) {
-      const normalized = normalizeAlertText(summaryText);
-
+    function parseAlerts(text) {
+      const normalized = String(text || '').replace(/\r/g, '');
       if (/No alerts in effect/i.test(normalized)) {
         return {
           count: 0,
@@ -1398,9 +1311,13 @@
         };
       }
 
-      const links = extractAlertLinks(normalized);
-      const picked = pickBestAlertLink(links);
-      if (!picked) {
+      const lines = normalized
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      const startIndex = lines.findIndex(line => /Weather Alerts for:\s*Greater Victoria/i.test(line));
+      if (startIndex === -1) {
         return {
           count: 0,
           severity: 'none',
@@ -1413,56 +1330,80 @@
         };
       }
 
-      const headline = extractCoreHeadline(picked.text);
-      const severity = getAlertSeverity(headline);
-      const level = getAlertLevel(headline, picked.text);
-      const weatherType = getWeatherType(headline, picked.text);
+      let sectionIndex = -1;
+      for (let i = startIndex + 1; i < lines.length; i++) {
+        if (/^##\s+(Warnings|Watches|Advisories|Statements)/i.test(lines[i])) {
+          sectionIndex = i;
+          break;
+        }
+        if (/^##\s+Weather shortcuts/i.test(lines[i])) break;
+      }
+
+      if (sectionIndex === -1) {
+        return {
+          count: 0,
+          severity: 'none',
+          level: 'none',
+          headline: 'No alerts in effect',
+          shortLabel: '',
+          weatherType: '',
+          summaryShort: '',
+          detailUrl: ALERTS_URL
+        };
+      }
+
+      let title = '';
+      let desc = '';
+
+      for (let i = sectionIndex + 1; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (/^##\s+Weather shortcuts/i.test(line)) break;
+        if (/^Follow:/i.test(line)) break;
+        if (/^In effect for:/i.test(line)) break;
+
+        if (!title && looksLikeAlertTitle(line)) {
+          title = cleanSingleLine(line);
+          continue;
+        }
+
+        if (title && !desc && isTimestampLine(line)) {
+          continue;
+        }
+
+        if (title && !desc) {
+          desc = cleanAlertDescription(line);
+          break;
+        }
+      }
+
+      if (!title) {
+        return {
+          count: 0,
+          severity: 'none',
+          level: 'none',
+          headline: 'No alerts in effect',
+          shortLabel: '',
+          weatherType: '',
+          summaryShort: '',
+          detailUrl: ALERTS_URL
+        };
+      }
+
+      const level = getAlertLevelFromTitle(title);
+      const weatherType = extractWeatherTypeFromTitle(title);
+      const summaryShort = buildAlertSummaryFromDescription(desc);
 
       return {
         count: 1,
-        severity,
+        severity: getSeverityFromLevel(level),
         level,
-        headline,
+        headline: title,
         shortLabel: weatherType,
         weatherType,
-        summaryShort: shortenSentence(cleanSingleLine(picked.text), 120),
-        detailUrl: picked.url || ALERTS_URL
+        summaryShort,
+        detailUrl: ALERTS_URL
       };
-    }
-
-    async function loadAlerts() {
-      try {
-        const summaryText = await fetchText(ALERTS_PROXY_URL);
-        const baseAlert = parseAlertsFromSummaryOnly(summaryText);
-
-        if (baseAlert.count === 0 || !baseAlert.detailUrl) {
-          return baseAlert;
-        }
-
-        try {
-          const detailText = await fetchText(proxifyForJina(baseAlert.detailUrl));
-          const headline = extractCoreHeadline(`${baseAlert.headline} ${detailText}`);
-          const severity = getAlertSeverity(headline);
-          const level = getAlertLevel(headline, detailText);
-          const weatherType = getWeatherType(headline, detailText);
-          const summaryShort = buildAlertSummary(detailText, headline);
-
-          return {
-            ...baseAlert,
-            severity,
-            level,
-            headline,
-            weatherType,
-            shortLabel: weatherType,
-            summaryShort,
-            detailUrl: baseAlert.detailUrl
-          };
-        } catch {
-          return baseAlert;
-        }
-      } catch {
-        return { status: 'error', count: 0 };
-      }
     }
 
     function setAlertIndicator(level) {
@@ -1513,6 +1454,15 @@
       setAlertIndicator(alerts.level);
       el('alerts-title').textContent = alerts.headline || 'Active weather alert';
       el('alerts-sub').textContent = 'Click For Full Details';
+    }
+
+    async function loadAlerts() {
+      try {
+        const text = await fetchText(ALERTS_PROXY_URL);
+        return parseAlerts(text);
+      } catch {
+        return { status: 'error', count: 0 };
+      }
     }
 
     async function loadAqhi() {
@@ -1609,7 +1559,7 @@
         console.error(error);
         el('updated').textContent = 'Live widget failed to load';
         el('condition').textContent = 'Preview error';
-        setAlertsBar({ status: 'error' });
+        setAlertsBar({ status: 'error', count: 0 });
       }
     }
 
