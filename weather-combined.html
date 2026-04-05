@@ -1250,7 +1250,34 @@
       return /(warning|watch|advisory|statement)/i.test(line);
     }
 
-    function extractWeatherTypeFromTitle(title) {
+    function guessWeatherTypeFromText(text) {
+      const lower = String(text || '').toLowerCase();
+
+      if (lower.includes('wind')) return 'Wind';
+      if (lower.includes('rainfall') || lower.includes('heavy rain') || /\brain\b/.test(lower)) return 'Rain';
+      if (lower.includes('snowfall') || /\bsnow\b/.test(lower) || lower.includes('blizzard')) return 'Snowfall';
+      if (lower.includes('thunderstorm')) return 'Thunderstorm';
+      if (lower.includes('storm surge')) return 'Storm Surge';
+      if (lower.includes('storm')) return 'Storm';
+      if (lower.includes('fog')) return 'Fog';
+      if (lower.includes('heat')) return 'Heat';
+      if (lower.includes('cold') || lower.includes('arctic') || lower.includes('freeze') || lower.includes('freezing')) return 'Cold';
+      if (lower.includes('ice pellets') || lower.includes('icy') || lower.includes('ice')) return 'Ice';
+      if (lower.includes('freezing rain')) return 'Freezing Rain';
+      if (lower.includes('air quality')) return 'Air Quality';
+      if (lower.includes('smoke')) return 'Smoke';
+      if (lower.includes('flood')) return 'Flooding';
+
+      return '';
+    }
+
+    function extractWeatherTypeFromTitle(title, desc = '') {
+      const directType = guessWeatherTypeFromText(title);
+      if (directType) return directType;
+
+      const descType = guessWeatherTypeFromText(desc);
+      if (descType) return descType;
+
       const cleaned = cleanSingleLine(title)
         .replace(/\b(red|orange|yellow)\b\s+/ig, '')
         .replace(/\bwarning\b/ig, '')
@@ -1260,10 +1287,7 @@
         .replace(/\s+/g, ' ')
         .trim();
 
-      if (/special weather/i.test(title)) return 'Special Statement';
-      if (/air quality/i.test(title)) return 'Air Quality';
-      if (/thunder/i.test(title)) return 'Thunderstorm';
-      if (cleaned) return cleaned;
+      if (cleaned && !/special weather/i.test(title)) return cleaned;
       return 'Weather';
     }
 
@@ -1401,7 +1425,7 @@
       }
 
       const level = getAlertLevelFromTitle(title);
-      const weatherType = extractWeatherTypeFromTitle(title);
+      const weatherType = extractWeatherTypeFromTitle(title, desc);
       const summaryShort = buildAlertSummaryFromDescription(desc);
 
       return {
