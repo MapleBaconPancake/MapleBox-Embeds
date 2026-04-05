@@ -16,13 +16,17 @@
       --alert-none-border: rgba(85, 125, 195, 0.16);
       --alert-none-dot: #4ed267;
 
-      --alert-watch-bg: rgba(255, 193, 77, 0.10);
-      --alert-watch-border: rgba(255, 203, 97, 0.24);
-      --alert-watch-dot: #ffd15d;
+      --alert-yellow-bg: rgba(255, 214, 10, 0.10);
+      --alert-yellow-border: rgba(255, 214, 10, 0.28);
+      --alert-yellow-icon: #fff200;
 
-      --alert-warning-bg: rgba(255, 120, 90, 0.11);
-      --alert-warning-border: rgba(255, 130, 100, 0.25);
-      --alert-warning-dot: #ff8c6f;
+      --alert-orange-bg: rgba(255, 166, 0, 0.11);
+      --alert-orange-border: rgba(255, 166, 0, 0.30);
+      --alert-orange-icon: #ffa300;
+
+      --alert-red-bg: rgba(220, 40, 40, 0.12);
+      --alert-red-border: rgba(239, 68, 68, 0.30);
+      --alert-red-icon: #e10600;
 
       --aqhi-low-accent: #1499d3;
       --aqhi-low-bg-top: rgba(20, 153, 211, 0.10);
@@ -244,7 +248,7 @@
       max-width: 100%;
       overflow: hidden;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       word-break: break-word;
     }
@@ -262,7 +266,7 @@
       grid-template-columns: repeat(10, minmax(0, 1fr));
       grid-template-areas:
         "wind wind wind air air air air uv uv uv"
-        "alerts alerts alerts alerts alerts alerts alerts sunset humidity humidity";
+        "alerts alerts alerts alerts alerts alerts sunset sunset humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
@@ -494,38 +498,103 @@
         var(--alert-none-bg);
     }
 
-    .alerts-row.alert-watch {
-      border-color: var(--alert-watch-border);
+    .alerts-row.alert-yellow {
+      border-color: var(--alert-yellow-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-watch-bg);
+        var(--alert-yellow-bg);
     }
 
-    .alerts-row.alert-warning {
-      border-color: var(--alert-warning-border);
+    .alerts-row.alert-orange {
+      border-color: var(--alert-orange-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-warning-bg);
+        var(--alert-orange-bg);
     }
 
-    .alerts-dot {
-      width: 11px;
-      height: 11px;
-      border-radius: 999px;
+    .alerts-row.alert-red {
+      border-color: var(--alert-red-border);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+        var(--alert-red-bg);
+    }
+
+    .alerts-indicator {
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
-      background: var(--alert-none-dot);
-      box-shadow: 0 0 0 3px rgba(81, 212, 106, 0.12);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       align-self: center;
     }
 
-    .alerts-row.alert-watch .alerts-dot {
-      background: var(--alert-watch-dot);
-      box-shadow: 0 0 0 3px rgba(255, 209, 93, 0.16);
+    .alerts-indicator.alert-none-icon {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      background: var(--alert-none-dot);
+      box-shadow: 0 0 0 3px rgba(81, 212, 106, 0.12);
     }
 
-    .alerts-row.alert-warning .alerts-dot {
-      background: var(--alert-warning-dot);
-      box-shadow: 0 0 0 3px rgba(255, 140, 111, 0.14);
+    .alerts-indicator.alert-yellow-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--alert-yellow-icon);
+      color: #000;
+      box-shadow: 0 0 0 3px rgba(255, 214, 10, 0.12);
+    }
+
+    .alerts-indicator.alert-orange-icon {
+      width: 18px;
+      height: 18px;
+      background: var(--alert-orange-icon);
+      transform: rotate(45deg);
+      color: #000;
+      box-shadow: 0 0 0 3px rgba(255, 163, 0, 0.12);
+    }
+
+    .alerts-indicator.alert-red-icon {
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 18px solid var(--alert-red-icon);
+      transform: translateY(-1px);
+      filter: drop-shadow(0 0 0 rgba(225, 6, 0, 0.12));
+    }
+
+    .alerts-indicator.alert-yellow-icon::before,
+    .alerts-indicator.alert-orange-icon::before,
+    .alerts-indicator.alert-red-icon::before {
+      content: "!";
+      position: absolute;
+      font-weight: 900;
+      line-height: 1;
+      font-size: 13px;
+      z-index: 2;
+    }
+
+    .alerts-indicator.alert-yellow-icon::before {
+      color: #000;
+      top: 2px;
+      left: 6px;
+    }
+
+    .alerts-indicator.alert-orange-icon::before {
+      color: #000;
+      top: 2px;
+      left: 6px;
+      transform: rotate(-45deg);
+    }
+
+    .alerts-indicator.alert-red-icon::before {
+      color: #fff;
+      top: 7px;
+      left: -3px;
+      font-size: 14px;
     }
 
     .alerts-text {
@@ -740,7 +809,7 @@
       <div class="slot-alerts">
         <a class="alerts-link" id="alerts-link" href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">
           <div class="alerts-row alert-none" id="alerts-row">
-            <div class="alerts-dot"></div>
+            <div class="alerts-indicator alert-none-icon" id="alerts-indicator"></div>
             <div class="alerts-text">
               <div class="alerts-title" id="alerts-title">No alerts in effect</div>
               <div class="alerts-sub" id="alerts-sub"></div>
@@ -798,7 +867,7 @@
     const AQICN_VICTORIA_PROXY_URL = 'https://r.jina.ai/http://aqicn.org/city/british-comlumbia/victoria-topaz/';
     const ALERTS_PROXY_URL = 'https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=';
 
-    const FETCH_TIMEOUT_MS = 7000;
+    const FETCH_TIMEOUT_MS = 9000;
 
     const el = (id) => document.getElementById(id);
 
@@ -956,6 +1025,10 @@
     const fetchText = (url) => fetchWithTimeout(url, 'text');
     const fetchJson = (url) => fetchWithTimeout(url, 'json');
 
+    function proxifyForJina(url) {
+      return `https://r.jina.ai/http://${String(url).replace(/^https?:\/\//i, '')}`;
+    }
+
     function setWind(speed, gust, dirDeg) {
       const windStat = el('wind-stat');
       windStat.className = 'stat slot-wind';
@@ -1078,8 +1151,8 @@
       if (alerts && alerts.count > 0) {
         items.push(`
           <div class="descriptor-item">
-            <div class="descriptor-title">Alert • ${escapeHtml(alerts.shortLabel || 'Weather')}</div>
-            <div class="descriptor-sub">${escapeHtml(alerts.headline || 'Active alert')}</div>
+            <div class="descriptor-title">Weather • ${escapeHtml(alerts.weatherType || 'Weather')}</div>
+            <div class="descriptor-sub">${escapeHtml(alerts.summaryShort || alerts.headline || 'Active alert')}</div>
           </div>
         `);
       }
@@ -1150,121 +1223,276 @@
       return String(text || '')
         .replace(/\r/g, '\n')
         .replace(/\u00a0/g, ' ')
-        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, '$1')
-        .replace(/https?:\/\/\S+/gi, ' ')
         .replace(/[ \t]+/g, ' ')
         .replace(/\n{3,}/g, '\n\n');
     }
 
-    function cleanAlertSegment(segment) {
-      return String(segment || '')
+    function cleanAlertText(text) {
+      return String(text || '')
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, '$1')
+        .replace(/https?:\/\/\S+/gi, ' ')
         .replace(/\*\*/g, ' ')
-        .replace(/##+/g, ' ')
+        .replace(/^#{1,6}\s*/gm, '')
+        .replace(/^[ \t]*[-•]\s*/gm, '')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    function cleanSingleLine(text) {
+      return String(text || '')
+        .replace(/\*\*/g, ' ')
+        .replace(/^#{1,6}\s*/g, '')
         .replace(/\s+/g, ' ')
         .trim();
     }
 
-    function extractPrimaryAlertBlock(text) {
-      const normalized = normalizeAlertText(text);
-
-      const startMatch = normalized.match(/#\s*Weather Alerts for:\s*Greater Victoria/i);
-      if (!startMatch) return normalized;
-
-      const startIndex = normalized.indexOf(startMatch[0]);
-      const afterStart = normalized.slice(startIndex);
-
-      const stopMatchers = [
-        /\*\*Follow:/i,
-        /##\s*Weather shortcuts/i,
-        /Restore default links/i,
-        /##\s*Features/i
-      ];
-
-      let endIndex = afterStart.length;
-      for (const rx of stopMatchers) {
-        const m = afterStart.match(rx);
-        if (m && m.index < endIndex) endIndex = m.index;
-      }
-
-      return afterStart.slice(0, endIndex).trim();
+    function extractAlertLinks(summaryText) {
+      const matches = [...String(summaryText || '').matchAll(/\[([^\]]*(?:warning|watch|advisory|statement)[^\]]*)\]\((https?:\/\/[^)]+)\)/gi)];
+      return matches.map(m => ({
+        text: cleanSingleLine(m[1]),
+        url: m[2]
+      }));
     }
 
-    function extractAlertHeadlineFromBlock(block) {
-      const cleanedBlock = cleanAlertSegment(block);
+    function pickBestAlertLink(links) {
+      if (!Array.isArray(links) || !links.length) return null;
 
-      if (/No alerts in effect\./i.test(cleanedBlock) || /No alerts in effect$/i.test(cleanedBlock)) {
-        return {
-          count: 0,
-          severity: 'none',
-          headline: 'No alerts in effect',
-          shortLabel: ''
-        };
-      }
+      const scored = links.map(link => {
+        const lower = `${link.text} ${link.url}`.toLowerCase();
+        let score = 0;
 
-      const specificPatterns = [
-        /([A-Z][A-Za-z/\- ]+(?:Warning|Watch|Advisory|Statement)(?:\s+in effect)?(?:\s+for\s+[A-Z][A-Za-z0-9 ,/'\-]+)?)/,
-        /((?:Special Weather Statement|Snowfall Warning|Rainfall Warning|Wind Warning|Fog Advisory|Heat Warning|Cold Warning|Thunderstorm Watch|Severe Thunderstorm Warning|Winter Storm Warning)(?:\s+in effect)?(?:\s+for\s+[A-Z][A-Za-z0-9 ,/'\-]+)?)/i
-      ];
+        if (lower.includes('greater victoria')) score += 120;
+        if (lower.includes('south vancouver island')) score += 70;
+        if (lower.includes('victoria')) score += 40;
+        if (lower.includes('warning')) score += 25;
+        if (lower.includes('watch')) score += 20;
+        if (lower.includes('advisory')) score += 15;
+        if (lower.includes('statement')) score += 10;
 
-      for (const pattern of specificPatterns) {
-        const match = cleanedBlock.match(pattern);
-        if (match && match[1]) {
-          const headline = match[1].replace(/\s+/g, ' ').trim();
-          return {
-            count: 1,
-            severity: /warning/i.test(headline) ? 'warning' : 'watch',
-            headline,
-            shortLabel: getAlertShortLabel(headline)
-          };
-        }
-      }
+        return { ...link, score };
+      });
 
-      return null;
+      scored.sort((a, b) => b.score - a.score);
+      return scored[0];
     }
 
-    function getAlertShortLabel(headline) {
-      if (/wind/i.test(headline)) return 'Wind';
-      if (/rain|rainfall/i.test(headline)) return 'Rain';
-      if (/snow|blizzard|snowfall/i.test(headline)) return 'Snow';
-      if (/fog/i.test(headline)) return 'Fog';
-      if (/thunder|storm/i.test(headline)) return 'Storm';
-      if (/heat/i.test(headline)) return 'Heat';
-      if (/cold|arctic|freez/i.test(headline)) return 'Cold';
-      if (/air quality/i.test(headline)) return 'Air';
+    function extractCoreHeadline(text) {
+      const source = cleanSingleLine(text);
+
+      const patterns = [
+        /Red Warning - [A-Za-z ]+/i,
+        /Orange Warning - [A-Za-z ]+/i,
+        /Yellow Warning - [A-Za-z ]+/i,
+        /Special Weather Statement/i,
+        /Snowfall Warning/i,
+        /Rainfall Warning/i,
+        /Wind Warning/i,
+        /Fog Advisory/i,
+        /Heat Warning/i,
+        /Cold Warning/i,
+        /Thunderstorm Watch/i,
+        /Severe Thunderstorm Warning/i,
+        /Winter Storm Warning/i,
+        /Weather Advisory/i,
+        /Air Quality Statement/i
+      ];
+
+      for (const pattern of patterns) {
+        const match = source.match(pattern);
+        if (match) return match[0];
+      }
+
+      const generic = source.match(/[A-Z][A-Za-z/\- ]+(Warning|Watch|Advisory|Statement)/);
+      return generic ? cleanSingleLine(generic[0]) : source;
+    }
+
+    function getAlertSeverity(headline) {
+      if (/warning/i.test(headline)) return 'warning';
+      if (/watch|advisory|statement/i.test(headline)) return 'watch';
+      return 'watch';
+    }
+
+    function getAlertLevel(headline, detailText = '') {
+      const lower = `${headline} ${detailText}`.toLowerCase();
+
+      if (lower.includes('red warning')) return 'red';
+      if (lower.includes('orange warning') || lower.includes('orange watch') || lower.includes('orange advisory')) return 'orange';
+      if (lower.includes('yellow warning') || lower.includes('yellow watch') || lower.includes('yellow advisory') || lower.includes('yellow statement')) return 'yellow';
+
+      if (lower.includes('warning')) return 'red';
+      if (lower.includes('watch') || lower.includes('advisory')) return 'orange';
+      if (lower.includes('statement')) return 'yellow';
+
+      return 'yellow';
+    }
+
+    function getWeatherType(headline, detailText = '') {
+      const lower = `${headline} ${detailText}`.toLowerCase();
+
+      if (lower.includes('wind')) return 'Wind';
+      if (lower.includes('thunder')) return 'Thunderstorm';
+      if (lower.includes('storm')) return 'Storm';
+      if (lower.includes('snow')) return 'Snow';
+      if (lower.includes('rain')) return 'Rain';
+      if (lower.includes('fog')) return 'Fog';
+      if (lower.includes('heat')) return 'Heat';
+      if (lower.includes('cold') || lower.includes('freeze') || lower.includes('arctic')) return 'Cold';
+      if (lower.includes('air quality')) return 'Air Quality';
+      if (lower.includes('special weather statement')) return 'Special Statement';
+      if (/warning/i.test(headline)) return 'Warning';
+      if (/watch/i.test(headline)) return 'Watch';
+      if (/advisory/i.test(headline)) return 'Advisory';
       return 'Weather';
     }
 
-    function parseAlerts(text) {
-      const primaryBlock = extractPrimaryAlertBlock(text);
-      const primaryResult = extractAlertHeadlineFromBlock(primaryBlock);
-      if (primaryResult) return primaryResult;
+    function extractSection(detailText, sectionName) {
+      const cleaned = normalizeAlertText(detailText);
+      const regex = new RegExp(`${sectionName}:\\s*([\\s\\S]*?)(?=\\n\\s*(?:What|When|Impacts?|Hazards?|Remarks?|Additional information|###|$):|$)`, 'i');
+      const match = cleaned.match(regex);
+      if (!match) return '';
 
-      const normalized = normalizeAlertText(text);
+      return match[1]
+        .split('\n')
+        .map(line => line.replace(/^[ \t]*[-•]\s*/, '').trim())
+        .filter(Boolean)
+        .join(' ');
+    }
 
-      if (/No alerts in effect\./i.test(normalized) || /No alerts in effect$/i.test(normalized)) {
+    function shortenSentence(text, maxLen = 95) {
+      const cleaned = cleanSingleLine(text).replace(/\.+$/,'');
+      if (!cleaned) return '';
+      if (cleaned.length <= maxLen) return cleaned;
+      const cut = cleaned.slice(0, maxLen);
+      const lastSpace = cut.lastIndexOf(' ');
+      return `${(lastSpace > 50 ? cut.slice(0, lastSpace) : cut).trim()}…`;
+    }
+
+    function buildAlertSummary(detailText, headline) {
+      const what = extractSection(detailText, 'What');
+      const when = extractSection(detailText, 'When');
+      const impacts = extractSection(detailText, 'Impacts');
+
+      const parts = [];
+      if (what) parts.push(shortenSentence(what, 80));
+      if (when) parts.push(shortenSentence(when, 70));
+      if (impacts) parts.push(shortenSentence(impacts, 95));
+
+      if (parts.length) return parts.join(' • ');
+      return shortenSentence(headline, 120);
+    }
+
+    function parseAlertsFromSummaryOnly(summaryText) {
+      const normalized = normalizeAlertText(summaryText);
+
+      if (/No alerts in effect/i.test(normalized)) {
         return {
           count: 0,
           severity: 'none',
+          level: 'none',
           headline: 'No alerts in effect',
-          shortLabel: ''
+          shortLabel: '',
+          weatherType: '',
+          summaryShort: '',
+          detailUrl: ALERTS_URL
         };
       }
 
+      const links = extractAlertLinks(normalized);
+      const picked = pickBestAlertLink(links);
+      if (!picked) {
+        return {
+          count: 0,
+          severity: 'none',
+          level: 'none',
+          headline: 'No alerts in effect',
+          shortLabel: '',
+          weatherType: '',
+          summaryShort: '',
+          detailUrl: ALERTS_URL
+        };
+      }
+
+      const headline = extractCoreHeadline(picked.text);
+      const severity = getAlertSeverity(headline);
+      const level = getAlertLevel(headline, picked.text);
+      const weatherType = getWeatherType(headline, picked.text);
+
       return {
-        count: 0,
-        severity: 'none',
-        headline: 'No alerts in effect',
-        shortLabel: ''
+        count: 1,
+        severity,
+        level,
+        headline,
+        shortLabel: weatherType,
+        weatherType,
+        summaryShort: shortenSentence(cleanSingleLine(picked.text), 120),
+        detailUrl: picked.url || ALERTS_URL
       };
+    }
+
+    async function loadAlerts() {
+      try {
+        const summaryText = await fetchText(ALERTS_PROXY_URL);
+        const baseAlert = parseAlertsFromSummaryOnly(summaryText);
+
+        if (baseAlert.count === 0 || !baseAlert.detailUrl) {
+          return baseAlert;
+        }
+
+        try {
+          const detailText = await fetchText(proxifyForJina(baseAlert.detailUrl));
+          const headline = extractCoreHeadline(`${baseAlert.headline} ${detailText}`);
+          const severity = getAlertSeverity(headline);
+          const level = getAlertLevel(headline, detailText);
+          const weatherType = getWeatherType(headline, detailText);
+          const summaryShort = buildAlertSummary(detailText, headline);
+
+          return {
+            ...baseAlert,
+            severity,
+            level,
+            headline,
+            weatherType,
+            shortLabel: weatherType,
+            summaryShort,
+            detailUrl: baseAlert.detailUrl
+          };
+        } catch {
+          return baseAlert;
+        }
+      } catch {
+        return { status: 'error', count: 0 };
+      }
+    }
+
+    function setAlertIndicator(level) {
+      const indicator = el('alerts-indicator');
+      indicator.className = 'alerts-indicator';
+
+      if (level === 'yellow') {
+        indicator.classList.add('alert-yellow-icon');
+        return;
+      }
+      if (level === 'orange') {
+        indicator.classList.add('alert-orange-icon');
+        return;
+      }
+      if (level === 'red') {
+        indicator.classList.add('alert-red-icon');
+        return;
+      }
+
+      indicator.classList.add('alert-none-icon');
     }
 
     function setAlertsBar(alerts) {
       const row = el('alerts-row');
-      el('alerts-link').href = ALERTS_URL;
+      el('alerts-link').href = alerts?.detailUrl || ALERTS_URL;
       row.className = 'alerts-row';
 
       if (!alerts || alerts.status === 'error') {
         row.classList.add('alert-none');
+        setAlertIndicator('none');
         el('alerts-title').textContent = 'No alerts in effect';
         el('alerts-sub').textContent = '';
         return;
@@ -1272,23 +1500,19 @@
 
       if (alerts.count === 0) {
         row.classList.add('alert-none');
+        setAlertIndicator('none');
         el('alerts-title').textContent = 'No alerts in effect';
         el('alerts-sub').textContent = '';
         return;
       }
 
-      row.classList.add(alerts.severity === 'watch' ? 'alert-watch' : 'alert-warning');
+      if (alerts.level === 'red') row.classList.add('alert-red');
+      else if (alerts.level === 'orange') row.classList.add('alert-orange');
+      else row.classList.add('alert-yellow');
+
+      setAlertIndicator(alerts.level);
       el('alerts-title').textContent = alerts.headline || 'Active weather alert';
       el('alerts-sub').textContent = 'Click For Full Details';
-    }
-
-    async function loadAlerts() {
-      try {
-        const text = await fetchText(ALERTS_PROXY_URL);
-        return parseAlerts(text);
-      } catch {
-        return { status: 'error', count: 0 };
-      }
     }
 
     async function loadAqhi() {
