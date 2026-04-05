@@ -6,8 +6,6 @@
   <title>Weather Combined Live</title>
   <style>
     :root{
-      --bg: #030713;
-      --card: #050d1b;
       --panel: #071222;
       --panel-2: #081428;
       --border: rgba(95, 130, 205, 0.14);
@@ -61,13 +59,17 @@
 
     body {
       padding: 0;
-      display: block;
+      border: 0;
+      outline: 0;
     }
 
     .card {
       width: 100%;
       height: 100%;
-      border-radius: 0;
+      border: 0 !important;
+      outline: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
       overflow: hidden;
       position: relative;
       isolation: isolate;
@@ -75,10 +77,8 @@
         radial-gradient(circle at top right, rgba(22, 103, 165, 0.10), transparent 34%),
         linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0)),
         linear-gradient(180deg, #050e1d, #040914);
-      border: none;
-      box-shadow: none;
-      -webkit-mask-image: none;
-      mask-image: none;
+      -webkit-mask-image: none !important;
+      mask-image: none !important;
       background-clip: border-box;
       padding: 10px;
       display: grid;
@@ -294,8 +294,8 @@
     }
 
     .slot-sunset.stat {
-      padding-left: 7px;
-      padding-right: 7px;
+      padding-left: 6px;
+      padding-right: 6px;
       align-items: center;
       text-align: center;
     }
@@ -685,7 +685,7 @@
       .descriptor-space { min-height: 108px; }
       .middle { gap: 7px; }
       .stat { min-height: 50px; padding: 6px 8px; }
-      .slot-sunset.stat { padding-left: 6px; padding-right: 6px; }
+      .slot-sunset.stat { padding-left: 5px; padding-right: 5px; }
       .forecast-day { padding-top: 6px; padding-bottom: 6px; }
     }
   </style>
@@ -755,7 +755,7 @@
           <div class="alerts-row alert-none" id="alerts-row">
             <div class="alerts-dot"></div>
             <div class="alerts-text">
-              <div class="alerts-title" id="alerts-title">Greater Victoria alerts</div>
+              <div class="alerts-title" id="alerts-title">No alerts in effect</div>
               <div class="alerts-sub" id="alerts-sub"></div>
             </div>
           </div>
@@ -1179,56 +1179,87 @@
     }
 
     function isGarbageAlertLine(line) {
+      const lower = String(line || '').trim().toLowerCase();
+
       return (
-        !line ||
-        /^url source:?$/i.test(line) ||
-        /^source:?$/i.test(line) ||
-        /^warnings?$/i.test(line) ||
-        /^watches?$/i.test(line) ||
-        /^statements?$/i.test(line) ||
-        /^alerts?$/i.test(line) ||
-        /^weather$/i.test(line) ||
-        /^bc43$/i.test(line) ||
-        /^canada\.ca$/i.test(line) ||
-        /^environment canada$/i.test(line) ||
-        /^meteorological service of canada$/i.test(line) ||
-        /^weather shortcuts$/i.test(line) ||
-        /^feedback$/i.test(line) ||
-        /^about this site$/i.test(line) ||
-        /^share this page$/i.test(line) ||
-        /^add to favourites$/i.test(line) ||
-        /^menu$/i.test(line) ||
-        /^search$/i.test(line) ||
-        /^skip to main content$/i.test(line) ||
-        /^find a forecast$/i.test(line) ||
-        /^text forecast$/i.test(line) ||
-        /^hourly forecast$/i.test(line) ||
-        /^weekend forecast$/i.test(line) ||
-        /^warnings summary$/i.test(line) ||
-        /^detailed forecast$/i.test(line) ||
-        /^air quality$/i.test(line) ||
-        /^satellite and radar$/i.test(line) ||
-        /^marine forecast$/i.test(line) ||
-        /^past 24 hour conditions$/i.test(line) ||
-        /^station information$/i.test(line) ||
-        /^forecast issued/i.test(line) ||
-        /^issued at/i.test(line) ||
-        /^valid from/i.test(line) ||
-        /^ended at/i.test(line) ||
-        /^more details$/i.test(line) ||
-        /^learn more$/i.test(line) ||
-        /^view full details$/i.test(line)
+        !lower ||
+        lower === 'url source:' ||
+        lower === 'url source' ||
+        lower === 'source:' ||
+        lower === 'source' ||
+        lower === 'warning' ||
+        lower === 'warnings' ||
+        lower === 'watch' ||
+        lower === 'watches' ||
+        lower === 'statement' ||
+        lower === 'statements' ||
+        lower === 'advisory' ||
+        lower === 'advisories' ||
+        lower === 'alerts' ||
+        lower === 'weather' ||
+        lower === 'bc43' ||
+        lower === 'canada.ca' ||
+        lower === 'environment canada' ||
+        lower === 'meteorological service of canada' ||
+        lower === 'weather shortcuts' ||
+        lower === 'feedback' ||
+        lower === 'about this site' ||
+        lower === 'share this page' ||
+        lower === 'add to favourites' ||
+        lower === 'menu' ||
+        lower === 'search' ||
+        lower === 'skip to main content' ||
+        lower === 'find a forecast' ||
+        lower === 'text forecast' ||
+        lower === 'hourly forecast' ||
+        lower === 'weekend forecast' ||
+        lower === 'warnings summary' ||
+        lower === 'detailed forecast' ||
+        lower === 'air quality' ||
+        lower === 'satellite and radar' ||
+        lower === 'marine forecast' ||
+        lower === 'past 24 hour conditions' ||
+        lower === 'station information' ||
+        lower.startsWith('forecast issued') ||
+        lower.startsWith('issued at') ||
+        lower.startsWith('valid from') ||
+        lower.startsWith('ended at') ||
+        lower === 'more details' ||
+        lower === 'learn more' ||
+        lower === 'view full details'
       );
     }
 
-    function isRealAlertHeadline(line) {
-      if (!line) return false;
-      if (isGarbageAlertLine(line)) return false;
-      if (/warning|watch|advisory|statement/i.test(line) === false) return false;
-      if (/no alerts in effect/i.test(line)) return false;
-      if (/weather shortcuts|feedback|about this site|source|url source|bc43/i.test(line)) return false;
-      if (/^\(?[a-z ]+\)?$/i.test(line) && line.split(' ').length <= 2) return false;
+    function looksLikeRealAlertHeadline(line) {
+      const lower = String(line || '').toLowerCase().trim();
+      if (!lower) return false;
+      if (isGarbageAlertLine(lower)) return false;
+      if (!/(warning|watch|advisory|statement)/i.test(lower)) return false;
+      if (/no alerts in effect/i.test(lower)) return false;
+      if (lower.split(/\s+/).length < 3) return false;
       return true;
+    }
+
+    function scoreAlertHeadline(line) {
+      const lower = String(line || '').toLowerCase();
+      let score = 0;
+
+      if (/warning/.test(lower)) score += 60;
+      if (/watch/.test(lower)) score += 50;
+      if (/advisory/.test(lower)) score += 40;
+      if (/special weather statement/.test(lower)) score += 35;
+      if (/statement/.test(lower)) score += 20;
+
+      if (/in effect/.test(lower)) score += 35;
+      if (/\bfor\b/.test(lower)) score += 20;
+      if (/greater victoria|victoria|south vancouver island|westshore|view royal/.test(lower)) score += 20;
+
+      if (/^statements?$/.test(lower)) score -= 1000;
+      if (/^warnings?$/.test(lower)) score -= 1000;
+      if (/^watches?$/.test(lower)) score -= 1000;
+      if (/^advisories?$/.test(lower)) score -= 1000;
+
+      return score;
     }
 
     function getAlertShortLabel(headline) {
@@ -1240,7 +1271,6 @@
       if (/heat/i.test(headline)) return 'Heat';
       if (/cold|arctic|freez/i.test(headline)) return 'Cold';
       if (/air quality/i.test(headline)) return 'Air';
-      if (/special weather statement/i.test(headline)) return 'Weather';
       return 'Weather';
     }
 
@@ -1259,14 +1289,13 @@
       const lines = normalized
         .split('\n')
         .map(cleanAlertLine)
-        .filter(Boolean)
-        .filter(line => !isGarbageAlertLine(line));
+        .filter(Boolean);
 
       const candidates = [];
       const seen = new Set();
 
       for (const line of lines) {
-        if (!isRealAlertHeadline(line)) continue;
+        if (!looksLikeRealAlertHeadline(line)) continue;
         const key = line.toLowerCase();
         if (seen.has(key)) continue;
         seen.add(key);
@@ -1281,6 +1310,8 @@
           shortLabel: ''
         };
       }
+
+      candidates.sort((a, b) => scoreAlertHeadline(b) - scoreAlertHeadline(a));
 
       const headline = candidates[0];
       const severity = /warning/i.test(headline) ? 'warning' : 'watch';
