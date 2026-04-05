@@ -250,7 +250,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: 1.12fr 1.15fr 0.98fr 0.75fr;
+      grid-template-columns: 1.06fr 1.16fr 1.02fr 0.76fr;
       gap: 7px;
       min-height: 0;
     }
@@ -649,7 +649,7 @@
         <div class="descriptor-space" id="descriptor-space">
           <div class="descriptor-item">
             <div class="descriptor-title">Checking conditions…</div>
-            <div class="descriptor-sub">Loading live weather, AQHI, and Greater Victoria alerts.</div>
+            <div class="descriptor-sub">Loading air and alerts.</div>
           </div>
         </div>
       </div>
@@ -727,16 +727,15 @@
 
     const AQHI_PAGE_MAP = {
       'westshore': {
-        pageUrl: 'https://weather.gc.ca/airquality/pages/bcaq-015_e.html',
         proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html'
       },
       'victoria/saanich': {
-        pageUrl: 'https://weather.gc.ca/airquality/pages/bcaq-010_e.html',
         proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
       }
     };
 
-    const ALERTS_PROXY_URL = `https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=`;
+    const TWN_AIR_PROXY_URL = 'https://r.jina.ai/http://www.theweathernetwork.com/en/city/ca/british-columbia/victoria/air-quality';
+    const ALERTS_PROXY_URL = 'https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=';
 
     const el = (id) => document.getElementById(id);
 
@@ -949,37 +948,90 @@
       return out;
     }
 
-    function parseAqCauseFromPage(text) {
-      const clean = String(text || '').replace(/\r/g, ' ');
-      const lower = clean.toLowerCase();
+    function scanCauseKeywords(text) {
+      const lower = String(text || '').toLowerCase();
 
       const keywordMap = [
-        { patterns: ['wildfire smoke', 'forest fire smoke', 'fire smoke'], label: 'Smoke', detail: 'Smoke in the air' },
-        { patterns: ['smoke'], label: 'Smoke', detail: 'Smoke in the air' },
-        { patterns: ['pollen'], label: 'Pollen', detail: 'Pollen in the air' },
-        { patterns: ['smog', 'ozone'], label: 'Smog', detail: 'Smog in the air' },
-        { patterns: ['fine particles', 'particulate matter', 'pm2.5', 'pm 2.5'], label: 'Fine particles', detail: 'Extra fine particles in the air' },
-        { patterns: ['dust'], label: 'Dust', detail: 'Dust in the air' },
-        { patterns: ['traffic', 'nitrogen dioxide', 'no2'], label: 'Traffic pollution', detail: 'Traffic pollution in the air' },
-        { patterns: ['wood smoke'], label: 'Smoke', detail: 'Wood smoke in the air' }
+        { patterns: ['wildfire smoke', 'forest fire smoke', 'fire smoke'], short: 'Smoke', detail: 'Smoke in the air' },
+        { patterns: ['wood smoke'], short: 'Smoke', detail: 'Wood smoke in the air' },
+        { patterns: ['smoke'], short: 'Smoke', detail: 'Smoke in the air' },
+        { patterns: ['pollen'], short: 'Pollen', detail: 'Pollen in the air' },
+        { patterns: ['smog'], short: 'Smog', detail: 'Smog in the air' },
+        { patterns: ['ozone'], short: 'Smog', detail: 'Extra ozone in the air' },
+        { patterns: ['fine particles', 'particulate matter', 'pm2.5', 'pm 2.5'], short: 'Fine particles', detail: 'Extra fine particles in the air' },
+        { patterns: ['dust'], short: 'Dust', detail: 'Dust in the air' },
+        { patterns: ['traffic', 'nitrogen dioxide', 'no2'], short: 'Traffic pollution', detail: 'Traffic pollution in the air' }
       ];
 
       for (const entry of keywordMap) {
         if (entry.patterns.some((p) => lower.includes(p))) {
-          return {
-            short: entry.label,
-            detail: entry.detail
-          };
+          return { short: entry.short, detail: entry.detail };
         }
       }
 
-      return {
-        short: 'No specific cause posted',
-        detail: 'The official AQHI page did not name a plain-language cause.'
-      };
+      return null;
     }
 
-    function setAir(aqhiData) {
+    function parseAqCauseFromEcPage(text) {
+      const found = scanCauseKeywords(text);
+      if (found) return found;
+      return null;
+    }
+
+    function parseAqCauseFromTwn(text) {
+      const found = scanCauseKeywords(text);
+      if (found) return found;
+
+      const clean = String(text || '').replace(/\r/g, ' ');
+      const simpleSentence =
+        clean.match(/air quality[^.]{0,140}\./i) ||
+        clean.match(/because[^.]{0,140}\./i) ||
+        clean.match(/due to[^.]{0,140}\./i);
+
+      if (simpleSentence) {
+        const sentence = simpleSentence[0].replace(/\s+/g, ' ').trim();
+        return {
+          short: 'Air conditions',
+          detail: sentence.charAt(0).toUpperCase() + sentence.slice(1)
+        };
+      }
+
+      return null;
+    }
+
+    function setDescriptorContent(aqhiData, alerts) {
+      const items = [];
+
+      if (alerts && alerts.count > 0) {
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">Alert • ${escapeHtml(alerts.shortLabel || 'Weather alert')}</div>
+            <div class="descriptor-sub">${escapeHtml(alerts.headline || 'Active alert')}</div>
+          </div>
+        `);
+      }
+
+      if (Number.isFinite(Number(aqhiData?.value))) {
+        if (items.length) items.push('<div class="descriptor-sep"></div>');
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">Air • ${escapeHtml(aqhiData.causeShort || 'No cause posted')}</div>
+            <div class="descriptor-sub">${escapeHtml(aqhiData.causeDetail || 'No plain-language air-quality reason was found.')}</div>
+          </div>
+        `);
+      } else if (!items.length) {
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">Air • Unavailable</div>
+            <div class="descriptor-sub">No preferred AQHI location was available, and no other official AQHI location was found within ${AQHI_RADIUS_KM} km.</div>
+          </div>
+        `);
+      }
+
+      el('descriptor-space').innerHTML = items.join('');
+    }
+
+    function setAirCard(aqhiData) {
       const aqhiStat = el('aqhi-stat');
       aqhiStat.className = 'stat air-quality';
 
@@ -994,50 +1046,6 @@
         el('aqhi-risk').textContent = 'Unavailable';
         el('aqhi-badge').textContent = '—';
       }
-
-      const items = [];
-
-      if (Number.isFinite(currentValue)) {
-        const causeShort = aqhiData?.causeShort || 'No specific cause posted';
-        const causeDetail = aqhiData?.causeDetail || 'The official AQHI page did not name a plain-language cause.';
-
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Air • ${escapeHtml(causeShort)}</div>
-            <div class="descriptor-sub">${escapeHtml(causeDetail)}</div>
-          </div>
-        `);
-
-        if (aqhiData?.observedAt || aqhiData?.sourceName) {
-          items.push(`<div class="descriptor-sep"></div>`);
-          items.push(`
-            <div class="descriptor-item">
-              <div class="descriptor-title">${escapeHtml(aqhiData.sourceName || 'AQHI')}</div>
-              <div class="descriptor-sub">${escapeHtml(aqhiData.observedAt || '')}</div>
-            </div>
-          `);
-        }
-
-        const periods = Array.isArray(aqhiData?.forecastPeriods) ? aqhiData.forecastPeriods.slice(0, 2) : [];
-        for (const period of periods) {
-          items.push(`<div class="descriptor-sep"></div>`);
-          items.push(`
-            <div class="descriptor-item">
-              <div class="descriptor-title">${escapeHtml(period.label)}</div>
-              <div class="descriptor-sub">${escapeHtml(`${formatAqhiValue(period.value)} • ${aqhiRiskLabel(period.value)} Risk`)}</div>
-            </div>
-          `);
-        }
-      } else {
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Air • Unavailable</div>
-            <div class="descriptor-sub">No preferred AQHI location was available, and no other official AQHI location was found within ${AQHI_RADIUS_KM} km.</div>
-          </div>
-        `);
-      }
-
-      el('descriptor-space').innerHTML = items.join('');
     }
 
     function renderForecast(daily) {
@@ -1060,7 +1068,7 @@
       }).join('');
     }
 
-    function setAlerts(alerts) {
+    function setAlertsBar(alerts) {
       const row = el('alerts-row');
       const title = el('alerts-title');
       const sub = el('alerts-sub');
@@ -1099,8 +1107,6 @@
         if (!pickedObs) {
           return {
             value: null,
-            observedAt: '',
-            sourceName: '',
             forecastPeriods: [],
             causeShort: '',
             causeDetail: ''
@@ -1109,12 +1115,6 @@
 
         const obsProps = pickedObs.feature?.properties || {};
         const obsValue = Number(obsProps.aqhi);
-        const observedAt =
-          String(
-            obsProps.observation_datetime_text_en ||
-            obsProps.forecast_datetime_text_en ||
-            ''
-          ).trim();
 
         let matchingForecasts = (fcstData?.features || []).filter((feature) => {
           const props = feature?.properties || {};
@@ -1153,35 +1153,44 @@
             .filter(Boolean)
         ).slice(0, 4);
 
-        let causeShort = 'No specific cause posted';
-        let causeDetail = 'The official AQHI page did not name a plain-language cause.';
+        let cause = null;
 
         const pageInfo = getAqhiPageInfo(pickedObs.nameLower);
         if (pageInfo?.proxyUrl) {
           try {
-            const aqPageText = await fetchText(pageInfo.proxyUrl);
-            const cause = parseAqCauseFromPage(aqPageText);
-            causeShort = cause.short;
-            causeDetail = cause.detail;
+            const ecText = await fetchText(pageInfo.proxyUrl);
+            cause = parseAqCauseFromEcPage(ecText);
           } catch (error) {
-            console.warn('AQHI cause page fetch failed.', error);
+            console.warn('EC AQ cause fetch failed.', error);
           }
+        }
+
+        if (!cause) {
+          try {
+            const twnText = await fetchText(TWN_AIR_PROXY_URL);
+            cause = parseAqCauseFromTwn(twnText);
+          } catch (error) {
+            console.warn('TWN AQ cause fetch failed.', error);
+          }
+        }
+
+        if (!cause) {
+          cause = {
+            short: 'No cause posted',
+            detail: 'No plain-language air-quality reason was found.'
+          };
         }
 
         return {
           value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-          observedAt,
-          sourceName: pickedObs.name || 'AQHI',
           forecastPeriods,
-          causeShort,
-          causeDetail
+          causeShort: cause.short,
+          causeDetail: cause.detail
         };
       } catch (error) {
         console.warn('AQHI load failed.', error);
         return {
           value: null,
-          observedAt: '',
-          sourceName: '',
           forecastPeriods: [],
           causeShort: '',
           causeDetail: ''
@@ -1196,7 +1205,8 @@
         return {
           count: 0,
           severity: 'none',
-          headline: 'No alerts in effect'
+          headline: 'No alerts in effect',
+          shortLabel: ''
         };
       }
 
@@ -1211,7 +1221,8 @@
         return {
           count: 0,
           severity: 'none',
-          headline: 'No alerts in effect'
+          headline: 'No alerts in effect',
+          shortLabel: ''
         };
       }
 
@@ -1220,10 +1231,20 @@
         ? 'watch'
         : 'warning';
 
+      let shortLabel = 'Weather alert';
+      if (/wind/i.test(headline)) shortLabel = 'Wind';
+      else if (/rain/i.test(headline)) shortLabel = 'Rain';
+      else if (/snow/i.test(headline)) shortLabel = 'Snow';
+      else if (/fog/i.test(headline)) shortLabel = 'Fog';
+      else if (/thunder/i.test(headline)) shortLabel = 'Thunderstorm';
+      else if (/heat/i.test(headline)) shortLabel = 'Heat';
+      else if (/cold|arctic/i.test(headline)) shortLabel = 'Cold';
+
       return {
         count: candidates.length,
         severity,
-        headline
+        headline,
+        shortLabel
       };
     }
 
@@ -1267,8 +1288,9 @@
         el('sunset').textContent = formatShortTime(daily.sunset[0]);
 
         setWind(current.wind_speed_10m, current.wind_gusts_10m, current.wind_direction_10m);
-        setAir(aqhi);
-        setAlerts(alerts);
+        setAirCard(aqhi);
+        setAlertsBar(alerts);
+        setDescriptorContent(aqhi, alerts);
         renderForecast(daily);
       } catch (error) {
         console.error(error);
@@ -1280,7 +1302,7 @@
             <div class="descriptor-sub">One or more live sources did not respond.</div>
           </div>
         `;
-        setAlerts({ status: 'error' });
+        setAlertsBar({ status: 'error' });
       }
     }
 
