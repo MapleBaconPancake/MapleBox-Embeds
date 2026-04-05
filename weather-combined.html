@@ -11,7 +11,6 @@
       --panel: #071222;
       --panel-2: #081428;
       --border: rgba(95, 130, 205, 0.14);
-      --border-strong: rgba(95, 130, 205, 0.18);
       --text: #f2f6ff;
       --muted: rgba(223, 232, 255, 0.80);
 
@@ -261,7 +260,7 @@
       grid-template-columns: repeat(10, minmax(0, 1fr));
       grid-template-areas:
         "wind wind wind air air air air uv uv uv"
-        "alerts alerts alerts alerts alerts sunset sunset sunset humidity humidity";
+        "alerts alerts alerts alerts alerts alerts sunset sunset humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
@@ -364,7 +363,7 @@
       flex-wrap: nowrap;
     }
 
-    .wind-main {
+    .wind-main, .wind-dir {
       font-size: 14px;
       font-weight: 800;
       line-height: 1.05;
@@ -381,14 +380,6 @@
       flex-shrink: 0;
       position: relative;
       top: -1px;
-    }
-
-    .wind-dir {
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.05;
-      white-space: nowrap;
-      flex-shrink: 0;
     }
 
     .aqhi-title-line {
@@ -723,7 +714,7 @@
         <div class="stat-label">Wind</div>
         <div class="wind-value-wrap">
           <span class="wind-main" id="wind-main">--</span>
-          <span class="wind-unit" id="wind-unit">km/h</span>
+          <span class="wind-unit">km/h</span>
           <span class="wind-dir" id="wind-dir">--</span>
         </div>
         <div class="stat-sub" id="wind-sub">Current wind speed</div>
@@ -810,22 +801,10 @@
     const el = (id) => document.getElementById(id);
 
     const POLLUTANT_META = {
-      particles: {
-        label: 'Particles',
-        desc: 'Smoke, dust, soot'
-      },
-      ozone: {
-        label: 'Ozone (O₃)',
-        desc: 'Smog / sunny pollution'
-      },
-      no2: {
-        label: 'NO₂',
-        desc: 'Traffic / fuel exhaust'
-      },
-      unknown: {
-        label: 'Cause unknown',
-        desc: 'No clear pollutant posted'
-      }
+      particles: { label: 'Particles', desc: 'Smoke, dust, soot' },
+      ozone: { label: 'Ozone (O₃)', desc: 'Smog / sunny pollution' },
+      no2: { label: 'NO₂', desc: 'Traffic / fuel exhaust' },
+      unknown: { label: 'Cause unknown', desc: 'No clear pollutant posted' }
     };
 
     function roundTemp(value) {
@@ -839,7 +818,11 @@
         minute: '2-digit',
         hour12: true,
         timeZone: TZ
-      }).replace(':00', '').toLowerCase();
+      })
+      .replace(':00', '')
+      .replace(/\s*p\.m\./i, 'p')
+      .replace(/\s*a\.m\./i, 'a')
+      .toLowerCase();
     }
 
     function formatUpdated(timestamp = new Date()) {
@@ -936,34 +919,6 @@
       return { text: 'Overcast', icon: 'overcast' };
     }
 
-    async function fetchWithTimeout(url, responseType = 'json') {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-      try {
-        const res = await fetch(url, {
-          cache: 'no-store',
-          signal: controller.signal
-        });
-
-        if (!res.ok) {
-          throw new Error(`Fetch failed: ${res.status}`);
-        }
-
-        return responseType === 'text' ? await res.text() : await res.json();
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    function fetchText(url) {
-      return fetchWithTimeout(url, 'text');
-    }
-
-    function fetchJson(url) {
-      return fetchWithTimeout(url, 'json');
-    }
-
     function getStoredPollutant() {
       try {
         const value = localStorage.getItem(POLLUTANT_STORAGE_KEY);
@@ -981,18 +936,34 @@
       } catch {}
     }
 
+    async function fetchWithTimeout(url, responseType = 'json') {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+      try {
+        const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+        return responseType === 'text' ? await res.text() : await res.json();
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    const fetchText = (url) => fetchWithTimeout(url, 'text');
+    const fetchJson = (url) => fetchWithTimeout(url, 'json');
+
     function setWind(speed, gust, dirDeg) {
       const windStat = el('wind-stat');
       windStat.className = 'stat slot-wind';
       const windClass = getWindClass(speed);
       if (windClass) windStat.classList.add(windClass);
 
-      const dir = compassDirection(dirDeg);
       el('wind-main').textContent = `${Math.round(speed)}`;
-      el('wind-dir').textContent = `${dir}`;
-      el('wind-sub').textContent = gust && gust >= speed + 3
-        ? `Gust ${Math.round(gust)} km/h`
-        : speed < 5 ? 'Calm' : 'Steady';
+      el('wind-dir').textContent = compassDirection(dirDeg);
+      el('wind-sub').textContent =
+        gust && gust >= speed + 3 ? `Gust ${Math.round(gust)} km/h`
+        : speed < 5 ? 'Calm'
+        : 'Steady';
     }
 
     function setUv(uvNow) {
@@ -1024,19 +995,11 @@
         ? distanceKm(LAT, LON, lat, lon)
         : Number.POSITIVE_INFINITY;
 
-      return {
-        feature,
-        lat,
-        lon,
-        name,
-        nameLower: name.toLowerCase(),
-        distance
-      };
+      return { feature, lat, lon, name, nameLower: name.toLowerCase(), distance };
     }
 
     function pickAqhiFeature(features) {
       if (!Array.isArray(features) || !features.length) return null;
-
       const mapped = features.map(mapFeature);
 
       const westshore = mapped.find(x => x.nameLower.includes('westshore'));
@@ -1048,11 +1011,9 @@
       );
       if (victoriaSaanich) return victoriaSaanich;
 
-      const withinRadius = mapped
+      return mapped
         .filter(x => x.distance <= AQHI_RADIUS_KM)
-        .sort((a, b) => a.distance - b.distance);
-
-      return withinRadius[0] || null;
+        .sort((a, b) => a.distance - b.distance)[0] || null;
     }
 
     function getAqhiPageUrl(nameLower) {
@@ -1066,41 +1027,13 @@
     function classifyPollutantFromText(text) {
       const lower = String(text || '').toLowerCase();
 
-      if (
-        lower.includes('primary pollutant') &&
-        (lower.includes('pm2.5') || lower.includes('pm 2.5'))
-      ) return 'particles';
+      if (lower.includes('primary pollutant') && (lower.includes('pm2.5') || lower.includes('pm 2.5'))) return 'particles';
+      if (lower.includes('primary pollutant') && (lower.includes('ozone') || lower.includes('o₃') || lower.includes('o3'))) return 'ozone';
+      if (lower.includes('primary pollutant') && (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2'))) return 'no2';
 
-      if (
-        lower.includes('primary pollutant') &&
-        (lower.includes('ozone') || lower.includes('o₃') || lower.includes('o3'))
-      ) return 'ozone';
-
-      if (
-        lower.includes('primary pollutant') &&
-        (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2'))
-      ) return 'no2';
-
-      if (
-        lower.includes('pm2.5') ||
-        lower.includes('pm 2.5') ||
-        lower.includes('fine particles') ||
-        lower.includes('particulate matter')
-      ) return 'particles';
-
-      if (
-        lower.includes('ground-level ozone') ||
-        lower.includes('ozone (o₃)') ||
-        lower.includes('ozone (o3)') ||
-        lower.includes('o3 aqi') ||
-        lower.includes('ozone')
-      ) return 'ozone';
-
-      if (
-        lower.includes('nitrogen dioxide') ||
-        lower.includes('no₂') ||
-        lower.includes('no2')
-      ) return 'no2';
+      if (lower.includes('pm2.5') || lower.includes('pm 2.5') || lower.includes('fine particles') || lower.includes('particulate matter')) return 'particles';
+      if (lower.includes('ground-level ozone') || lower.includes('ozone (o₃)') || lower.includes('ozone (o3)') || lower.includes('o3 aqi') || lower.includes('ozone')) return 'ozone';
+      if (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2')) return 'no2';
 
       return null;
     }
@@ -1119,7 +1052,6 @@
       ].filter(x => Number.isFinite(x.value));
 
       if (!values.length) return null;
-
       values.sort((a, b) => b.value - a.value);
       return values[0].key || null;
     }
@@ -1132,13 +1064,8 @@
       const aqClass = getAqhiClass(currentValue);
       if (aqClass) aqhiStat.classList.add(aqClass);
 
-      if (Number.isFinite(currentValue)) {
-        el('aqhi-risk').textContent = aqhiRiskLabel(currentValue);
-        el('aqhi-badge').textContent = formatAqhiValue(currentValue);
-      } else {
-        el('aqhi-risk').textContent = 'Unavailable';
-        el('aqhi-badge').textContent = '—';
-      }
+      el('aqhi-risk').textContent = Number.isFinite(currentValue) ? aqhiRiskLabel(currentValue) : 'Unavailable';
+      el('aqhi-badge').textContent = Number.isFinite(currentValue) ? formatAqhiValue(currentValue) : '—';
     }
 
     function setDescriptorContent(aqhiData, alerts) {
@@ -1155,9 +1082,7 @@
 
       const meta = POLLUTANT_META[aqhiData?.pollutantKey || 'unknown'];
 
-      if (items.length) {
-        items.push('<div class="descriptor-sep"></div>');
-      }
+      if (items.length) items.push('<div class="descriptor-sep"></div>');
 
       items.push(`
         <div class="descriptor-item">
@@ -1170,13 +1095,10 @@
     }
 
     function getDominantDayWeatherMeta(hourly, date) {
-      if (!hourly?.time || !hourly?.weather_code) {
-        return weatherMeta(3, true);
-      }
+      if (!hourly?.time || !hourly?.weather_code) return weatherMeta(3, true);
 
       const start = `${date}T06:00`;
       const end = `${date}T18:00`;
-
       const counts = new Map();
 
       for (let i = 0; i < hourly.time.length; i++) {
@@ -1187,13 +1109,10 @@
         }
       }
 
-      if (!counts.size) {
-        return weatherMeta(3, true);
-      }
+      if (!counts.size) return weatherMeta(3, true);
 
       let bestCode = 3;
       let bestCount = -1;
-
       for (const [code, count] of counts.entries()) {
         if (count > bestCount) {
           bestCode = code;
@@ -1205,8 +1124,7 @@
     }
 
     function renderForecast(daily, hourly) {
-      const forecast = el('forecast');
-      forecast.innerHTML = daily.time.map((date, i) => {
+      el('forecast').innerHTML = daily.time.map((date, i) => {
         const meta = getDominantDayWeatherMeta(hourly, date);
         const precip = daily.precipitation_probability_max?.[i];
         return `
@@ -1227,9 +1145,10 @@
     function cleanAlertLine(line) {
       return String(line || '')
         .replace(/^url source:\s*/i, '')
-        .replace(/^https?:\/\/\S+$/i, '')
-        .replace(/^weather shortcuts$/i, '')
-        .replace(/^more information$/i, '')
+        .replace(/https?:\/\/\S+/gi, '')
+        .replace(/weather\.gc\.ca\/warnings\/\S+/gi, '')
+        .replace(/^alert •.*$/i, '')
+        .replace(/^air •.*$/i, '')
         .trim();
     }
 
@@ -1237,43 +1156,31 @@
       const clean = String(text || '').replace(/\r/g, '');
 
       if (/No alerts in effect/i.test(clean)) {
-        return {
-          count: 0,
-          severity: 'none',
-          headline: 'No alerts in effect',
-          shortLabel: ''
-        };
+        return { count: 0, severity: 'none', headline: 'No alerts in effect', shortLabel: '' };
       }
 
       const lines = clean
         .split('\n')
-        .map((l) => cleanAlertLine(l))
+        .map(cleanAlertLine)
         .filter(Boolean)
-        .filter((line) => {
-          return !/^url source:/i.test(line) &&
-                 !/^https?:\/\//i.test(line) &&
-                 !/weather shortcuts|feedback|about this site|features|share this page|add to favourites/i.test(line);
-        });
+        .filter(line =>
+          !/weather shortcuts|feedback|about this site|features|share this page|add to favourites/i.test(line)
+        );
 
-      const candidates = lines.filter((line) => {
-        return /warning|watch|advisory|statement/i.test(line) &&
-               !/^alert •/i.test(line) &&
-               !/^air •/i.test(line);
-      });
+      const candidates = lines.filter(line =>
+        /warning|watch|advisory|statement/i.test(line) &&
+        !/url source/i.test(line) &&
+        !/http/i.test(line) &&
+        !/weather\.gc\.ca/i.test(line) &&
+        !/^bc43$/i.test(line)
+      );
 
       if (!candidates.length) {
-        return {
-          count: 0,
-          severity: 'none',
-          headline: 'No alerts in effect',
-          shortLabel: ''
-        };
+        return { count: 0, severity: 'none', headline: 'No alerts in effect', shortLabel: '' };
       }
 
       const headline = candidates[0];
-      const severity = /watch/i.test(headline) && !/warning/i.test(headline)
-        ? 'watch'
-        : 'warning';
+      const severity = /watch/i.test(headline) && !/warning/i.test(headline) ? 'watch' : 'warning';
 
       let shortLabel = 'Weather';
       if (/wind/i.test(headline)) shortLabel = 'Wind';
@@ -1284,20 +1191,38 @@
       else if (/heat/i.test(headline)) shortLabel = 'Heat';
       else if (/cold|arctic/i.test(headline)) shortLabel = 'Cold';
 
-      return {
-        count: candidates.length,
-        severity,
-        headline,
-        shortLabel
-      };
+      return { count: candidates.length, severity, headline, shortLabel };
+    }
+
+    function setAlertsBar(alerts) {
+      const row = el('alerts-row');
+      el('alerts-link').href = ALERTS_URL;
+      row.className = 'alerts-row';
+
+      if (!alerts || alerts.status === 'error') {
+        row.classList.add('alert-none');
+        el('alerts-title').textContent = 'Greater Victoria alerts';
+        el('alerts-sub').textContent = 'Click For Full Details';
+        return;
+      }
+
+      if (alerts.count === 0) {
+        row.classList.add('alert-none');
+        el('alerts-title').textContent = 'No alerts in effect';
+        el('alerts-sub').textContent = '';
+        return;
+      }
+
+      row.classList.add(alerts.severity === 'watch' ? 'alert-watch' : 'alert-warning');
+      el('alerts-title').textContent = alerts.headline || 'Active weather alert';
+      el('alerts-sub').textContent = 'Click For Full Details';
     }
 
     async function loadAlerts() {
       try {
         const text = await fetchText(ALERTS_PROXY_URL);
         return parseAlerts(text);
-      } catch (error) {
-        console.warn('Alerts parse failed.', error);
+      } catch {
         return { status: 'error', count: 0 };
       }
     }
@@ -1306,7 +1231,6 @@
       try {
         const obsData = await fetchJson(AQHI_OBS_API_URL);
         const pickedObs = pickAqhiFeature(obsData?.features || []);
-
         let pollutantKey = null;
 
         if (pickedObs) {
@@ -1325,11 +1249,8 @@
             if (pollutantKey) break;
           }
 
-          if (!pollutantKey) {
-            pollutantKey = getStoredPollutant() || 'unknown';
-          } else {
-            storePollutant(pollutantKey);
-          }
+          if (!pollutantKey) pollutantKey = getStoredPollutant() || 'unknown';
+          else storePollutant(pollutantKey);
 
           const obsProps = pickedObs.feature?.properties || {};
           const obsValue = Number(obsProps.aqhi);
@@ -1340,16 +1261,9 @@
           };
         }
 
-        return {
-          value: null,
-          pollutantKey: getStoredPollutant() || 'unknown'
-        };
-      } catch (error) {
-        console.warn('AQHI load failed.', error);
-        return {
-          value: null,
-          pollutantKey: getStoredPollutant() || 'unknown'
-        };
+        return { value: null, pollutantKey: getStoredPollutant() || 'unknown' };
+      } catch {
+        return { value: null, pollutantKey: getStoredPollutant() || 'unknown' };
       }
     }
 
@@ -1390,10 +1304,7 @@
         const weather = await loadWeather();
         applyWeather(weather);
 
-        const [aqhi, alerts] = await Promise.allSettled([
-          loadAqhi(),
-          loadAlerts()
-        ]);
+        const [aqhi, alerts] = await Promise.allSettled([loadAqhi(), loadAlerts()]);
 
         const aqhiData = aqhi.status === 'fulfilled'
           ? aqhi.value
@@ -1410,11 +1321,6 @@
         console.error(error);
         el('updated').textContent = 'Live widget failed to load';
         el('condition').textContent = 'Preview error';
-        el('descriptor-space').innerHTML = `
-          <div class="descriptor-item">
-            <div class="descriptor-title">Weather widget failed</div>
-          </div>
-        `;
         setAlertsBar({ status: 'error' });
       }
     }
