@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Weather Combined Worst Case Preview</title>
+  <title>Weather Combined Live</title>
   <style>
     :root{
       --bg: #040b1f;
@@ -13,22 +13,34 @@
       --border: rgba(80, 145, 255, 0.22);
       --text: #f2f6ff;
       --muted: rgba(223, 232, 255, 0.82);
-      --alert-warning-bg: rgba(255, 120, 90, 0.14);
-      --alert-warning-border: rgba(255, 130, 100, 0.36);
+
+      --alert-none-bg: rgba(83, 125, 206, 0.10);
+      --alert-none-border: rgba(110, 150, 230, 0.22);
+      --alert-none-dot: #7ea6ff;
+
       --alert-watch-bg: rgba(255, 193, 77, 0.13);
       --alert-watch-border: rgba(255, 203, 97, 0.34);
+      --alert-watch-dot: #ffd15d;
+
+      --alert-warning-bg: rgba(255, 120, 90, 0.14);
+      --alert-warning-border: rgba(255, 130, 100, 0.36);
+      --alert-warning-dot: #ff8c6f;
+
       --aqhi-low-accent: #1499d3;
       --aqhi-low-bg-top: rgba(20, 153, 211, 0.16);
       --aqhi-low-bg-bottom: rgba(20, 153, 211, 0.08);
       --aqhi-low-border: rgba(20, 153, 211, 0.42);
+
       --aqhi-moderate-accent: #ffc323;
       --aqhi-moderate-bg-top: rgba(255, 195, 35, 0.18);
       --aqhi-moderate-bg-bottom: rgba(255, 195, 35, 0.08);
       --aqhi-moderate-border: rgba(255, 195, 35, 0.42);
+
       --aqhi-high-accent: #ff5b5b;
       --aqhi-high-bg-top: rgba(255, 91, 91, 0.18);
       --aqhi-high-bg-bottom: rgba(255, 91, 91, 0.08);
       --aqhi-high-border: rgba(255, 91, 91, 0.42);
+
       --aqhi-veryhigh-accent: #ad0000;
       --aqhi-veryhigh-bg-top: rgba(173, 0, 0, 0.18);
       --aqhi-veryhigh-bg-bottom: rgba(173, 0, 0, 0.08);
@@ -36,6 +48,7 @@
     }
 
     * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
       width: 100%;
@@ -45,6 +58,7 @@
       font-family: Inter, "Segoe UI", Arial, sans-serif;
       overflow: hidden;
     }
+
     body { padding: 8px; }
 
     .card {
@@ -96,6 +110,7 @@
     }
 
     .hero { min-width: 0; display: flex; flex-direction: column; }
+
     .hero-main {
       display: flex;
       align-items: center;
@@ -250,8 +265,7 @@
 
     .stat.air-quality {
       padding: 8px 9px;
-      background:
-        linear-gradient(180deg, var(--panel), var(--panel-2));
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
       color: var(--text);
     }
 
@@ -406,14 +420,36 @@
       gap: 10px;
       min-height: 44px;
       border-radius: 12px;
-      border: 1px solid var(--alert-warning-border);
+      border: 1px solid var(--alert-none-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-warning-bg);
+        var(--alert-none-bg);
       padding: 8px 10px;
       min-width: 0;
       overflow: hidden;
       cursor: pointer;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .alerts-row.alert-none {
+      border-color: var(--alert-none-border);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+        var(--alert-none-bg);
+    }
+
+    .alerts-row.alert-watch {
+      border-color: var(--alert-watch-border);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+        var(--alert-watch-bg);
+    }
+
+    .alerts-row.alert-warning {
+      border-color: var(--alert-warning-border);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+        var(--alert-warning-bg);
     }
 
     .alerts-dot {
@@ -421,7 +457,17 @@
       height: 11px;
       border-radius: 999px;
       flex-shrink: 0;
-      background: #ff8c6f;
+      background: var(--alert-none-dot);
+      box-shadow: 0 0 0 3px rgba(126, 166, 255, 0.12);
+    }
+
+    .alerts-row.alert-watch .alerts-dot {
+      background: var(--alert-watch-dot);
+      box-shadow: 0 0 0 3px rgba(255, 209, 93, 0.16);
+    }
+
+    .alerts-row.alert-warning .alerts-dot {
+      background: var(--alert-warning-dot);
       box-shadow: 0 0 0 3px rgba(255, 140, 111, 0.14);
     }
 
@@ -505,6 +551,18 @@
       display: block;
     }
 
+    .forecast-condition {
+      font-size: 11px;
+      line-height: 1.1;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
     .forecast-divider {
       width: 18px;
       height: 1px;
@@ -521,18 +579,6 @@
       margin-bottom: 4px;
       text-align: center;
       white-space: nowrap;
-    }
-
-    .forecast-condition {
-      font-size: 11px;
-      line-height: 1.1;
-      color: var(--muted);
-      margin-bottom: 4px;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
     }
 
     .forecast-night {
@@ -583,7 +629,7 @@
         <div class="descriptor-space" id="descriptor-space">
           <div class="descriptor-item">
             <div class="descriptor-title">Checking conditions…</div>
-            <div class="descriptor-sub">Live preview is loading the same source mix planned for the final build.</div>
+            <div class="descriptor-sub">Loading live weather, WestShore AQHI, and Greater Victoria alerts.</div>
           </div>
         </div>
       </div>
@@ -621,11 +667,11 @@
     </div>
 
     <a class="alerts-link" id="alerts-link" href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">
-      <div class="alerts-row" id="alerts-row">
+      <div class="alerts-row alert-none" id="alerts-row">
         <div class="alerts-dot"></div>
         <div class="alerts-text">
-          <div class="alerts-title" id="alerts-title">Environment Canada alerts</div>
-          <div class="alerts-sub" id="alerts-sub">Click For Full Details</div>
+          <div class="alerts-title" id="alerts-title">Greater Victoria alerts</div>
+          <div class="alerts-sub" id="alerts-sub">Checking official alerts</div>
         </div>
       </div>
     </a>
@@ -637,11 +683,30 @@
     const LAT = 48.4621;
     const LON = -123.4689;
     const TZ = 'America/Vancouver';
+
+    const LOCATION_TITLE = 'View Royal';
+
     const ALERTS_URL = 'https://weather.gc.ca/warnings/report_e.html?bc43=';
-    const ALERTS_PAGE_NAME = 'Greater Victoria';
-    const WEATHER_URL = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset&timezone=${encodeURIComponent(TZ)}&forecast_days=5`;
     const WESTSHORE_AQHI_PAGE = 'https://weather.gc.ca/airquality/pages/bcaq-015_e.html';
-    const AIR_URL = null;
+
+    const WEATHER_URL =
+      `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${LAT}` +
+      `&longitude=${LON}` +
+      `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,precipitation_probability` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset` +
+      `&timezone=${encodeURIComponent(TZ)}` +
+      `&forecast_days=5` +
+      `&cell_selection=land`;
+
+    const AQHI_OBS_API_URL =
+      `https://api.weather.gc.ca/collections/aqhi-observations-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
+
+    const AQHI_FCST_API_URL =
+      `https://api.weather.gc.ca/collections/aqhi-forecasts-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
+
+    const AQHI_PROXY_URL = `https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html`;
+    const ALERTS_PROXY_URL = `https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=`;
 
     const el = (id) => document.getElementById(id);
 
@@ -659,8 +724,8 @@
       }).replace(':00', '').toLowerCase();
     }
 
-    function formatUpdated() {
-      return new Date().toLocaleString('en-CA', {
+    function formatUpdated(timestamp = new Date()) {
+      return new Date(timestamp).toLocaleString('en-CA', {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
@@ -686,6 +751,15 @@
       });
     }
 
+    function escapeHtml(str = '') {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
     function compassDirection(deg) {
       const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
       return dirs[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
@@ -707,28 +781,16 @@
     }
 
     function formatAqhiValue(value) {
-      return value >= 10 ? '10+' : String(value);
+      if (!Number.isFinite(value)) return '—';
+      return value >= 10 ? '10+' : String(Math.round(value));
     }
 
-    function aqhiLabel(value) {
-      if (value <= 3) return 'Excellent';
-      if (value <= 6) return 'Fair';
-      if (value <= 9) return 'Poor';
-      return 'Very Poor';
-    }
-
-    function airCause(currentWeatherText, air) {
-      const pm25 = Number(air.pm2_5 ?? 0);
-      const ozone = Number(air.ozone ?? 0);
-      const no2 = Number(air.nitrogen_dioxide ?? 0);
-      const smokyWords = ['smoke', 'haze', 'mist'];
-      const looksSmoky = smokyWords.some(word => currentWeatherText.toLowerCase().includes(word));
-
-      if (pm25 >= ozone && pm25 >= no2) {
-        return looksSmoky ? 'Smoke' : 'Fine particles';
-      }
-      if (ozone >= no2) return 'Smog';
-      return 'Traffic pollution';
+    function aqhiRiskLabel(value) {
+      if (!Number.isFinite(value)) return 'Unavailable';
+      if (value <= 3) return 'Low';
+      if (value <= 6) return 'Moderate';
+      if (value <= 9) return 'High';
+      return 'Very High';
     }
 
     function iconUrl(name) {
@@ -739,12 +801,44 @@
       if (code === 0) return { text: 'Clear', icon: isDay ? 'clear-day' : 'clear-night' };
       if ([1, 2].includes(code)) return { text: 'Partly cloudy', icon: isDay ? 'partly-cloudy-day' : 'partly-cloudy-night' };
       if (code === 3) return { text: 'Overcast', icon: 'overcast' };
-      if ([45, 48].includes(code)) return { text: 'Fog', icon: 'overcast' };
-      if ([51, 53, 55, 56, 57].includes(code)) return { text: 'Drizzle', icon: 'rain' };
+      if ([45, 48].includes(code)) return { text: 'Fog', icon: 'fog' };
+      if ([51, 53, 55, 56, 57].includes(code)) return { text: 'Drizzle', icon: 'drizzle' };
       if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: 'Rain', icon: 'rain' };
-      if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: 'Snow', icon: 'overcast' };
-      if ([95, 96, 99].includes(code)) return { text: 'Storm', icon: 'rain' };
+      if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: 'Snow', icon: 'snow' };
+      if ([95, 96, 99].includes(code)) return { text: 'Storm', icon: 'thunderstorms-rain' };
       return { text: 'Overcast', icon: 'overcast' };
+    }
+
+    function distanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = (d) => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    function normalizePeriodLabel(raw = '') {
+      const s = String(raw).trim();
+      if (!s) return '';
+      return s.replace(/\s+/g, ' ');
+    }
+
+    function fetchText(url) {
+      return fetch(url, { cache: 'no-store' }).then(async (res) => {
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+        return res.text();
+      });
+    }
+
+    function fetchJson(url) {
+      return fetch(url, { cache: 'no-store' }).then(async (res) => {
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+        return res.json();
+      });
     }
 
     function setWind(speed, gust, dirDeg) {
@@ -760,25 +854,71 @@
         : speed < 5 ? 'Calm' : 'Steady';
     }
 
-    function setAir(aqi, weatherText, air) {
+    function setAir(aqhiData) {
       const aqhiStat = el('aqhi-stat');
       aqhiStat.className = 'stat air-quality';
-      aqhiStat.classList.add(getAqhiClass(aqi));
-      el('aqhi-risk').textContent = aqhiLabel(aqi);
-      el('aqhi-badge').textContent = formatAqhiValue(aqi);
 
-      const descriptorSpace = el('descriptor-space');
-      descriptorSpace.innerHTML = `
+      const currentValue = Number(aqhiData?.value);
+      if (Number.isFinite(currentValue)) {
+        aqhiStat.classList.add(getAqhiClass(currentValue));
+        el('aqhi-risk').textContent = aqhiRiskLabel(currentValue);
+        el('aqhi-badge').textContent = formatAqhiValue(currentValue);
+      } else {
+        aqhiStat.classList.add('aqhi-low');
+        el('aqhi-risk').textContent = 'Unavailable';
+        el('aqhi-badge').textContent = '—';
+      }
+
+      const items = [];
+      const sourceName = aqhiData?.sourceName || 'WestShore AQHI';
+
+      items.push(`
         <div class="descriptor-item">
-          <div class="descriptor-title">Air • ${airCause(weatherText, air)}</div>
+          <div class="descriptor-title">Air • ${escapeHtml(Number.isFinite(currentValue) ? `${aqhiRiskLabel(currentValue)} Risk` : 'Source Unavailable')}</div>
+          <div class="descriptor-sub">${escapeHtml(sourceName)}${aqhiData?.observedAt ? ` • ${aqhiData.observedAt}` : ''}</div>
         </div>
-      `;
+      `);
+
+      const periods = Array.isArray(aqhiData?.forecastPeriods) ? aqhiData.forecastPeriods.slice(0, 3) : [];
+      for (const period of periods) {
+        items.push(`<div class="descriptor-sep"></div>`);
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">${escapeHtml(period.label)}</div>
+            <div class="descriptor-sub">${escapeHtml(`${formatAqhiValue(period.value)} • ${aqhiRiskLabel(period.value)} Risk`)}</div>
+          </div>
+        `);
+      }
+
+      el('descriptor-space').innerHTML = items.join('');
     }
 
-    function setAlertsPreview() {
+    function setAlerts(alerts) {
+      const row = el('alerts-row');
+      const title = el('alerts-title');
+      const sub = el('alerts-sub');
       el('alerts-link').href = ALERTS_URL;
-      el('alerts-title').textContent = 'Environment Canada alerts';
-      el('alerts-sub').textContent = 'Click For Full Details';
+
+      row.className = 'alerts-row';
+
+      if (!alerts || alerts.status === 'error') {
+        row.classList.add('alert-none');
+        title.textContent = 'Greater Victoria alerts';
+        sub.textContent = 'Click For Full Details';
+        return;
+      }
+
+      if (alerts.count === 0) {
+        row.classList.add('alert-none');
+        title.textContent = 'No alerts in effect';
+        sub.textContent = '';
+        return;
+      }
+
+      const worst = alerts.severity || 'warning';
+      row.classList.add(worst === 'watch' ? 'alert-watch' : 'alert-warning');
+      title.textContent = alerts.headline || 'Active weather alert';
+      sub.textContent = 'Click For Full Details';
     }
 
     function renderForecast(daily) {
@@ -790,8 +930,8 @@
           <div class="forecast-day">
             <div class="forecast-name">${formatDayName(date)}</div>
             <div class="forecast-date">${formatDayDate(date)}</div>
-            <div class="forecast-icon-wrap"><img alt="${meta.text}" src="${iconUrl(meta.icon)}" /></div>
-            <div class="forecast-condition">${meta.text}</div>
+            <div class="forecast-icon-wrap"><img alt="${escapeHtml(meta.text)}" src="${iconUrl(meta.icon)}" /></div>
+            <div class="forecast-condition">${escapeHtml(meta.text)}</div>
             <div class="forecast-divider"></div>
             <div class="forecast-high">${Math.round(daily.temperature_2m_max[i])}°</div>
             <div class="forecast-night">Night ${Math.round(daily.temperature_2m_min[i])}°</div>
@@ -801,17 +941,254 @@
       }).join('');
     }
 
-    async function loadLivePreview() {
-      try {
-        const weatherRes = await fetch(WEATHER_URL);
-        if (!weatherRes.ok) throw new Error(`Weather fetch failed: ${weatherRes.status}`);
+    function pickNearestRelevantFeature(features, preferredNames = []) {
+      if (!Array.isArray(features) || !features.length) return null;
 
-        const weather = await weatherRes.json();
+      const normalizedPreferred = preferredNames.map((n) => n.toLowerCase());
+
+      const mapped = features.map((feature) => {
+        const coords = feature?.geometry?.coordinates || [];
+        const lon = Number(coords[0]);
+        const lat = Number(coords[1]);
+        const name = String(feature?.properties?.location_name_en || '');
+        const distance = Number.isFinite(lat) && Number.isFinite(lon)
+          ? distanceKm(LAT, LON, lat, lon)
+          : Number.POSITIVE_INFINITY;
+
+        const preferredRank = normalizedPreferred.findIndex((token) => name.toLowerCase().includes(token));
+        return {
+          feature,
+          name,
+          distance,
+          preferredRank: preferredRank === -1 ? 999 : preferredRank
+        };
+      });
+
+      mapped.sort((a, b) => {
+        if (a.preferredRank !== b.preferredRank) return a.preferredRank - b.preferredRank;
+        return a.distance - b.distance;
+      });
+
+      return mapped[0]?.feature || null;
+    }
+
+    function dedupePeriods(periods) {
+      const seen = new Set();
+      const out = [];
+      for (const p of periods) {
+        const key = `${p.label}|${p.value}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(p);
+        }
+      }
+      return out;
+    }
+
+    async function loadAqhiFromApi() {
+      const [obsData, fcstData] = await Promise.all([
+        fetchJson(AQHI_OBS_API_URL),
+        fetchJson(AQHI_FCST_API_URL)
+      ]);
+
+      const obsFeature = pickNearestRelevantFeature(
+        obsData?.features || [],
+        ['westshore', 'victoria', 'saanich']
+      );
+      if (!obsFeature) throw new Error('No nearby AQHI observation found');
+
+      const obsName = String(obsFeature.properties?.location_name_en || 'WestShore AQHI');
+      const obsLocationId = String(obsFeature.properties?.location_id || '');
+      const obsValue = Number(obsFeature.properties?.aqhi);
+      const obsText = String(obsFeature.properties?.observation_datetime_text_en || '');
+
+      let forecastCandidates = (fcstData?.features || []).filter((f) => {
+        const id = String(f?.properties?.location_id || '');
+        const name = String(f?.properties?.location_name_en || '').toLowerCase();
+        return (obsLocationId && id === obsLocationId) || name === obsName.toLowerCase();
+      });
+
+      if (!forecastCandidates.length) {
+        const picked = pickNearestRelevantFeature(fcstData?.features || [], [obsName, 'westshore', 'victoria', 'saanich']);
+        if (picked) {
+          const pickedName = String(picked.properties?.location_name_en || '');
+          const pickedId = String(picked.properties?.location_id || '');
+          forecastCandidates = (fcstData?.features || []).filter((f) => {
+            const id = String(f?.properties?.location_id || '');
+            const name = String(f?.properties?.location_name_en || '');
+            return (pickedId && id === pickedId) || name === pickedName;
+          });
+        }
+      }
+
+      forecastCandidates.sort((a, b) => {
+        const ta = new Date(a?.properties?.publication_datetime || a?.properties?.forecast_datetime || 0).getTime();
+        const tb = new Date(b?.properties?.publication_datetime || b?.properties?.forecast_datetime || 0).getTime();
+        return tb - ta;
+      });
+
+      const periods = dedupePeriods(
+        forecastCandidates
+          .map((f) => {
+            const p = f?.properties || {};
+            const label =
+              p.period_name_en ||
+              p.forecast_period_text_en ||
+              p.period_en ||
+              p.period ||
+              '';
+            const value = Number(p.aqhi);
+            if (!label || !Number.isFinite(value)) return null;
+            return { label: normalizePeriodLabel(label), value: Math.round(value) };
+          })
+          .filter(Boolean)
+      ).slice(0, 4);
+
+      return {
+        value: Math.round(obsValue),
+        observedAt: obsText,
+        sourceName: obsName,
+        forecastPeriods: periods
+      };
+    }
+
+    function parseWestshoreAqhi(text) {
+      const clean = String(text || '').replace(/\r/g, '');
+
+      const observedBlock =
+        clean.match(/Observed Conditions[\s\S]*?Calculated at:\s*([^\n]+)[\s\S]*?(\d+)\s+(Low|Moderate|High|Very High)\s+Risk/i) ||
+        clean.match(/Observed Conditions[\s\S]*?(\d+)\s*-\s*(Low|Moderate|High|Very High)\s+Risk[\s\S]*?Calculated at:\s*([^\n]+)/i);
+
+      let observedValue = null;
+      let observedAt = '';
+
+      if (observedBlock) {
+        const nums = observedBlock.slice(1).map((x) => String(x).trim());
+        const numeric = nums.find((x) => /^\d+$/.test(x));
+        const calc = nums.find((x) => /AM|PM|PDT|PST/i.test(x));
+        observedValue = numeric ? Number(numeric) : null;
+        observedAt = calc || '';
+      }
+
+      const forecastSectionMatch = clean.match(/Forecast Maximums[\s\S]*?(?:Issued at:[\s\S]*?\n)([\s\S]*?)(?:Who is at risk\?|Weather shortcuts|Footnote)/i);
+      const forecastPeriods = [];
+
+      if (forecastSectionMatch) {
+        const section = forecastSectionMatch[1];
+        const lines = section.split('\n').map((l) => l.trim()).filter(Boolean);
+
+        for (let i = 0; i < lines.length - 1; i++) {
+          const label = lines[i];
+          const next = lines[i + 1];
+          const m = next.match(/^(\d+)\s*-\s*(Low|Moderate|High|Very High)\s+Risk/i);
+          if (m && !/^Issued at:/i.test(label)) {
+            forecastPeriods.push({
+              label: normalizePeriodLabel(label),
+              value: Number(m[1])
+            });
+            i += 1;
+          }
+        }
+      }
+
+      if (!Number.isFinite(observedValue)) {
+        const simpleObs = clean.match(/Observed Conditions[\s\S]*?(\d+)\s*-\s*(Low|Moderate|High|Very High)\s+Risk/i);
+        if (simpleObs) observedValue = Number(simpleObs[1]);
+      }
+
+      return {
+        value: Number.isFinite(observedValue) ? observedValue : null,
+        observedAt,
+        sourceName: 'WestShore AQHI',
+        forecastPeriods: dedupePeriods(forecastPeriods).slice(0, 4)
+      };
+    }
+
+    async function loadAqhi() {
+      try {
+        return await loadAqhiFromApi();
+      } catch (apiError) {
+        console.warn('AQHI API failed, falling back to WestShore page.', apiError);
+      }
+
+      try {
+        const text = await fetchText(AQHI_PROXY_URL);
+        const parsed = parseWestshoreAqhi(text);
+        if (!Number.isFinite(parsed.value)) throw new Error('AQHI fallback parse failed');
+        return parsed;
+      } catch (fallbackError) {
+        console.warn('AQHI fallback failed.', fallbackError);
+      }
+
+      return {
+        value: null,
+        observedAt: '',
+        sourceName: 'WestShore AQHI',
+        forecastPeriods: []
+      };
+    }
+
+    function parseAlerts(text) {
+      const clean = String(text || '').replace(/\r/g, '');
+
+      if (/No alerts in effect/i.test(clean)) {
+        return {
+          count: 0,
+          severity: 'none',
+          headline: 'No alerts in effect'
+        };
+      }
+
+      const lines = clean.split('\n').map((l) => l.trim()).filter(Boolean);
+
+      const candidates = lines.filter((line) => {
+        return /warning|watch|advisory|statement/i.test(line) &&
+               !/learn more|feedback|about this site|features|weather shortcuts/i.test(line);
+      });
+
+      if (!candidates.length) {
+        return {
+          count: 0,
+          severity: 'none',
+          headline: 'No alerts in effect'
+        };
+      }
+
+      const headline = candidates[0];
+      const severity = /watch/i.test(headline) && !/warning/i.test(headline)
+        ? 'watch'
+        : 'warning';
+
+      return {
+        count: candidates.length,
+        severity,
+        headline
+      };
+    }
+
+    async function loadAlerts() {
+      try {
+        const text = await fetchText(ALERTS_PROXY_URL);
+        return parseAlerts(text);
+      } catch (error) {
+        console.warn('Alerts parse failed.', error);
+        return { status: 'error', count: 0 };
+      }
+    }
+
+    async function loadLiveWidget() {
+      try {
+        const [weather, aqhi, alerts] = await Promise.all([
+          fetchJson(WEATHER_URL),
+          loadAqhi(),
+          loadAlerts()
+        ]);
+
         const current = weather.current;
         const daily = weather.daily;
         const currentMeta = weatherMeta(current.weather_code, Boolean(current.is_day));
 
-        el('title').textContent = 'View Royal';
+        el('title').textContent = LOCATION_TITLE;
         el('updated').textContent = `Updated ${formatUpdated()}`;
         el('temp').textContent = roundTemp(current.temperature_2m);
         el('temp-icon').src = iconUrl(currentMeta.icon);
@@ -829,39 +1206,24 @@
         el('sunset').textContent = formatShortTime(daily.sunset[0]);
 
         setWind(current.wind_speed_10m, current.wind_gusts_10m, current.wind_direction_10m);
-
-        const descriptorSpace = el('descriptor-space');
-        descriptorSpace.innerHTML = `
-          <div class="descriptor-item">
-            <div class="descriptor-title">Air • WestShore AQHI</div>
-            <div class="descriptor-sub">Preview is now reserved for the official WestShore AQHI live source instead of the temporary Open-Meteo air feed.</div>
-          </div>
-        `;
-
-        const aqhiStat = el('aqhi-stat');
-        aqhiStat.className = 'stat air-quality aqhi-low';
-        el('aqhi-risk').textContent = 'Official source';
-        el('aqhi-badge').textContent = '—';
-
-        el('alerts-link').href = ALERTS_URL;
-        el('alerts-title').textContent = `${ALERTS_PAGE_NAME} alerts`;
-        el('alerts-sub').textContent = 'Click For Full Details';
-
+        setAir(aqhi);
+        setAlerts(alerts);
         renderForecast(daily);
       } catch (error) {
         console.error(error);
-        el('updated').textContent = 'Live preview failed to load';
+        el('updated').textContent = 'Live widget failed to load';
         el('condition').textContent = 'Preview error';
         el('descriptor-space').innerHTML = `
           <div class="descriptor-item">
-            <div class="descriptor-title">Weather preview failed</div>
-            <div class="descriptor-sub">The live data source did not respond in the preview. The layout is still ready for the final live build.</div>
+            <div class="descriptor-title">Weather widget failed</div>
+            <div class="descriptor-sub">One or more live sources did not respond.</div>
           </div>
         `;
+        setAlerts({ status: 'error' });
       }
     }
 
-    loadLivePreview();
+    loadLiveWidget();
   </script>
 </body>
 </html>
