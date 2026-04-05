@@ -1,1271 +1,713 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Weather Combined Live</title>
-  <style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MapleBox Weather Combined</title>
+  <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=2yuuz2GiItYnDiT07Q8j240XdInaVBP_Ghd2308WnQkzmv_HcqoLZZ7kXF-DZwLYg8-zGnnW0mrELi8etEWUnlpLDkKxBY7cJekDbPgpWo489CdQ_o2Q7JBOptkM3w4VrUu2zwuyv3xwy7bgb8z9frkIx1nXgSwDLvkJFloAgMhVvEbS26SA75ZQJtdQhq8JcqVR-quOLTxg4tOKuZsebsm6_UxGqVIKE43d9MYnDuc4Emc_FW4UH25Io-57-sV0FxcrdajtdqwqpKrmG8w5AA" charset="UTF-8"></script><style>
     :root{
-      --bg: #040b1f;
-      --card: #07122b;
-      --panel: #081630;
-      --panel-2: #091936;
-      --border: rgba(80, 145, 255, 0.22);
-      --text: #f2f6ff;
-      --muted: rgba(223, 232, 255, 0.82);
-
-      --alert-none-bg: rgba(83, 125, 206, 0.10);
-      --alert-none-border: rgba(110, 150, 230, 0.22);
-      --alert-none-dot: #7ea6ff;
-
-      --alert-watch-bg: rgba(255, 193, 77, 0.13);
-      --alert-watch-border: rgba(255, 203, 97, 0.34);
-      --alert-watch-dot: #ffd15d;
-
-      --alert-warning-bg: rgba(255, 120, 90, 0.14);
-      --alert-warning-border: rgba(255, 130, 100, 0.36);
-      --alert-warning-dot: #ff8c6f;
-
-      --aqhi-low-accent: #1499d3;
-      --aqhi-low-bg-top: rgba(20, 153, 211, 0.16);
-      --aqhi-low-bg-bottom: rgba(20, 153, 211, 0.08);
-      --aqhi-low-border: rgba(20, 153, 211, 0.42);
-
-      --aqhi-moderate-accent: #ffc323;
-      --aqhi-moderate-bg-top: rgba(255, 195, 35, 0.18);
-      --aqhi-moderate-bg-bottom: rgba(255, 195, 35, 0.08);
-      --aqhi-moderate-border: rgba(255, 195, 35, 0.42);
-
-      --aqhi-high-accent: #ff5b5b;
-      --aqhi-high-bg-top: rgba(255, 91, 91, 0.18);
-      --aqhi-high-bg-bottom: rgba(255, 91, 91, 0.08);
-      --aqhi-high-border: rgba(255, 91, 91, 0.42);
-
-      --aqhi-veryhigh-accent: #ad0000;
-      --aqhi-veryhigh-bg-top: rgba(173, 0, 0, 0.18);
-      --aqhi-veryhigh-bg-bottom: rgba(173, 0, 0, 0.08);
-      --aqhi-veryhigh-border: rgba(173, 0, 0, 0.42);
+      --bg:#071726;
+      --panel:#0b2137;
+      --panel-2:#0d2741;
+      --panel-3:#102d49;
+      --line:rgba(174,214,255,.14);
+      --line-2:rgba(174,214,255,.10);
+      --text:#edf7ff;
+      --muted:#a8c2d9;
+      --soft:#89aeca;
+      --blue:#5bb8ff;
+      --good:#6fd38e;
+      --mod:#f1cd58;
+      --high:#f2994a;
+      --vhigh:#eb5757;
+      --shadow:0 10px 24px rgba(0,0,0,.18);
+      --r-lg:18px;
+      --r-md:14px;
+      --r-sm:12px;
+      --gap:10px;
     }
 
-    * { box-sizing: border-box; }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:transparent;color:var(--text);font-family:"Segoe UI",Inter,Arial,sans-serif}
+    body{min-height:100vh}
 
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      color: var(--text);
-      font-family: Inter, "Segoe UI", Arial, sans-serif;
-      overflow: hidden;
-    }
-
-    body { padding: 0; }
-
-    .card {
-      width: 100%;
-      height: 100vh;
-      border-radius: 0;
+    .widget{
+      width:100%;
+      min-height:100vh;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
-        linear-gradient(180deg, #07122b, #040b1f);
-      border: none;
-      padding: 10px;
-      display: grid;
-      grid-template-rows: auto auto minmax(70px, 1fr) auto;
-      gap: 6px;
-      overflow: hidden;
-      contain: layout paint;
+        radial-gradient(circle at top right, rgba(65,132,202,.22), transparent 32%),
+        linear-gradient(180deg, #0a1d31 0%, #081829 100%);
+      padding:12px;
+      overflow:hidden;
     }
 
-    .top {
-      display: grid;
-      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-      gap: 8px;
-      min-width: 0;
-      align-items: start;
+    .top{
+      display:grid;
+      grid-template-columns:minmax(0,1.45fr) minmax(250px,.9fr);
+      gap:12px;
+      align-items:start;
+      min-height:208px;
     }
 
-    .left-top {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
+    .hero{
+      padding:6px 2px 0 2px;
+      min-width:0;
     }
 
-    .title {
-      font-size: 19px;
-      font-weight: 800;
-      line-height: 1.05;
-      margin: 0 0 4px;
-      letter-spacing: 0.1px;
+    .place{font-size:25px;font-weight:800;letter-spacing:.2px;line-height:1.1}
+    .updated{margin-top:4px;font-size:12px;color:var(--muted);letter-spacing:.25px}
+
+    .hero-main{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:12px;
+      align-items:center;
+      margin-top:10px;
     }
 
-    .updated {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.15;
-      margin-bottom: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .temp-block{min-width:0}
+    .current-temp{
+      font-size:70px;
+      font-weight:900;
+      line-height:.92;
+      letter-spacing:-1.8px;
+      text-shadow:0 3px 18px rgba(0,0,0,.18);
+    }
+    .condition{margin-top:8px;font-size:24px;font-weight:700;line-height:1.1}
+    .meta{margin-top:7px;display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:15px;font-weight:600}
+    .hero-icon-wrap{display:flex;align-items:center;justify-content:center;min-width:112px}
+    .hero-icon{font-size:84px;line-height:1;filter:drop-shadow(0 6px 12px rgba(0,0,0,.2))}
+
+    .descriptor-stack{
+      display:flex;
+      flex-direction:column;
+      gap:9px;
+      padding-top:8px;
+      min-height:182px;
+      justify-content:flex-start;
     }
 
-    .hero {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
+    .descriptor{
+      background:linear-gradient(180deg, rgba(18,48,79,.55), rgba(12,35,57,.35));
+      border:1px solid var(--line-2);
+      border-radius:16px;
+      padding:12px 14px;
+      min-height:74px;
+      backdrop-filter:blur(4px);
     }
 
-    .hero-main {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
+    .descriptor.hidden{display:none}
+    .descriptor-title{font-size:16px;font-weight:800;line-height:1.2}
+    .descriptor-body{margin-top:4px;font-size:13px;line-height:1.35;color:var(--muted)}
+    .descriptor-divider{
+      height:1px;
+      margin:0 8px;
+      background:linear-gradient(90deg, transparent, rgba(167,210,247,.2), transparent);
+      display:none;
+    }
+    .descriptor-divider.show{display:block}
+
+    .mid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      grid-template-areas:
+        "wind air sunset uv"
+        "alert alert alert humidity";
+      gap:10px;
+      align-items:stretch;
     }
 
-    .temp {
-      font-size: 58px;
-      font-weight: 900;
-      line-height: 0.92;
-      letter-spacing: -1.4px;
-      margin: 0;
-      white-space: nowrap;
-      flex-shrink: 0;
+    .card{
+      background:linear-gradient(180deg, rgba(15,43,70,.95), rgba(10,30,49,.97));
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      min-width:0;
     }
 
-    .temp-icon-wrap {
-      width: 64px;
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 2px;
+    .stat{padding:11px 12px 12px 12px; min-height:98px; display:flex; flex-direction:column; justify-content:space-between}
+    .stat-label{font-size:13px;font-weight:800;color:#d7ecff;letter-spacing:.25px}
+    .stat-value{margin-top:8px;font-size:28px;font-weight:900;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .stat-sub{margin-top:6px;font-size:13px;color:var(--muted);font-weight:600;line-height:1.25}
+
+    #card-wind{grid-area:wind}
+    #card-air{grid-area:air}
+    #card-sunset{grid-area:sunset}
+    #card-uv{grid-area:uv; min-height:84px}
+    #card-humidity{grid-area:humidity}
+
+    .aqhi-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:34px;
+      height:34px;
+      padding:0 11px;
+      border-radius:999px;
+      font-size:18px;
+      font-weight:900;
+      color:#071726;
+      margin-right:8px;
+      vertical-align:middle;
     }
 
-    .temp-icon-wrap img {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-      display: block;
+    .alert-link{
+      grid-area:alert;
+      display:flex;
+      align-items:center;
+      min-height:98px;
+      text-decoration:none;
+      color:inherit;
     }
 
-    .status-row {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-      min-width: 0;
-      margin-top: 2px;
-      flex-wrap: wrap;
+    .alert-card{
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:14px 16px;
+      background:linear-gradient(180deg, rgba(14,41,66,.96), rgba(9,28,46,.98));
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      transition:transform .14s ease, border-color .14s ease, background .14s ease;
     }
 
-    .condition {
-      font-size: 18px;
-      font-weight: 700;
-      line-height: 1.1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .alert-link:hover .alert-card{
+      transform:translateY(-1px);
+      border-color:rgba(132,193,255,.28);
+      background:linear-gradient(180deg, rgba(16,46,74,.98), rgba(10,31,50,1));
     }
 
-    .precip {
-      font-size: 13px;
-      line-height: 1.1;
-      color: var(--muted);
-      white-space: nowrap;
+    .alert-text{min-width:0; display:flex; flex-direction:column; justify-content:center}
+    .alert-main{font-size:21px; font-weight:850; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .alert-sub{margin-top:5px; font-size:13px; color:var(--muted); font-weight:700; min-height:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .alert-cta{font-size:14px; font-weight:800; color:#dff1ff; white-space:nowrap; flex-shrink:0}
+
+    .forecast{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:10px;
     }
 
-    .feels, .high-low-inline {
-      font-size: 14px;
-      line-height: 1.15;
-      color: var(--muted);
-      margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .forecast-card{
+      background:linear-gradient(180deg, rgba(14,39,64,.92), rgba(9,26,42,.96));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px 10px 11px;
+      text-align:center;
+      box-shadow:var(--shadow);
+      min-width:0;
+    }
+    .fc-day{font-size:14px;font-weight:850}
+    .fc-date{margin-top:2px;font-size:11px;color:var(--muted);font-weight:700}
+    .fc-icon{margin-top:8px;font-size:33px;line-height:1}
+    .fc-cond{margin-top:7px;font-size:12px;font-weight:700;min-height:30px;line-height:1.2;color:#e3f2ff}
+    .fc-divider{height:1px;margin:8px 8px;background:linear-gradient(90deg, transparent, rgba(167,210,247,.22), transparent)}
+    .fc-high{font-size:22px;font-weight:900;line-height:1}
+    .fc-low{margin-top:3px;font-size:13px;color:var(--muted);font-weight:700}
+    .fc-pop{margin-top:8px;font-size:12px;color:#acd4ff;font-weight:800}
+
+    .loading,.error{
+      display:flex;align-items:center;justify-content:center;min-height:60vh;
+      color:var(--muted);font-weight:700;font-size:15px;text-align:center;padding:20px;
     }
 
-    .right-top {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      align-self: stretch;
+    @media (max-width: 980px){
+      .top{grid-template-columns:1fr}
+      .descriptor-stack{min-height:unset;padding-top:0}
+      .mid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        grid-template-areas:
+          "wind air"
+          "sunset uv"
+          "alert alert"
+          "humidity humidity";
+      }
+      .forecast{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
 
-    .descriptor-space {
-      min-height: 118px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      justify-content: flex-start;
-      gap: 6px;
-      min-width: 0;
-      text-align: right;
-      padding-top: 2px;
-      background: transparent;
-    }
-
-    .descriptor-item {
-      width: fit-content;
-      max-width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 3px;
-      min-width: 0;
-      background: transparent;
-      margin-left: auto;
-    }
-
-    .descriptor-title {
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.12;
-      width: auto;
-      max-width: 100%;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-    }
-
-    .descriptor-sub {
-      font-size: 11px;
-      line-height: 1.18;
-      color: var(--muted);
-      width: auto;
-      max-width: 100%;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-    }
-
-    .descriptor-sep {
-      width: min(100%, 220px);
-      height: 1px;
-      background: rgba(120, 160, 255, 0.18);
-      margin: 1px 0 2px;
-      flex-shrink: 0;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: 1fr 1.12fr 1fr 0.9fr 0.8fr;
-      gap: 7px;
-      min-height: 0;
-      margin-top: 14px;
-    }
-
-    .stat {
-      min-height: 62px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      padding: 8px 9px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-width: 0;
-    }
-
-    .stat.air-quality {
-      padding: 8px 9px;
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      color: var(--text);
-    }
-
-    .stat.air-quality.aqhi-low,
-    .stat.uv-low {
-      border-color: var(--aqhi-low-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-low-bg-top), var(--aqhi-low-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.air-quality.aqhi-moderate,
-    .stat.uv-moderate {
-      border-color: var(--aqhi-moderate-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-moderate-bg-top), var(--aqhi-moderate-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.air-quality.aqhi-high,
-    .stat.uv-high {
-      border-color: var(--aqhi-high-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-high-bg-top), var(--aqhi-high-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.air-quality.aqhi-veryhigh,
-    .stat.uv-veryhigh {
-      border-color: var(--aqhi-veryhigh-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-veryhigh-bg-top), var(--aqhi-veryhigh-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.air-quality .stat-label,
-    .stat.air-quality .stat-sub {
-      color: var(--muted);
-      opacity: 1;
-      margin-top: 0;
-    }
-
-    .aqhi-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .aqhi-subrow {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 4px;
-      min-width: 0;
-    }
-
-    .aqhi-badge {
-      min-width: 30px;
-      height: 30px;
-      padding: 0 7px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      font-weight: 900;
-      line-height: 1;
-      background: rgba(255,255,255,0.08);
-      border: 2px solid currentColor;
-      color: inherit;
-      flex-shrink: 0;
-    }
-
-    .aqhi-risk {
-      font-size: 16px;
-      font-weight: 800;
-      line-height: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: var(--text);
-    }
-
-    .stat.air-quality.aqhi-low .aqhi-badge { color: var(--aqhi-low-accent); }
-    .stat.air-quality.aqhi-moderate .aqhi-badge { color: var(--aqhi-moderate-accent); }
-    .stat.air-quality.aqhi-high .aqhi-badge { color: var(--aqhi-high-accent); }
-    .stat.air-quality.aqhi-veryhigh .aqhi-badge { color: var(--aqhi-veryhigh-accent); }
-
-    .stat.wind-low {
-      border-color: var(--aqhi-low-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-low-bg-top), var(--aqhi-low-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.wind-moderate {
-      border-color: var(--aqhi-moderate-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-moderate-bg-top), var(--aqhi-moderate-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.wind-high {
-      border-color: var(--aqhi-high-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-high-bg-top), var(--aqhi-high-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat.wind-veryhigh {
-      border-color: var(--aqhi-veryhigh-border);
-      background:
-        linear-gradient(180deg, var(--aqhi-veryhigh-bg-top), var(--aqhi-veryhigh-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
-    .stat-label {
-      font-size: 10px;
-      line-height: 1;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      color: var(--muted);
-      margin-bottom: 5px;
-    }
-
-    .stat-value {
-      font-size: 17px;
-      font-weight: 800;
-      line-height: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .stat-sub {
-      font-size: 11px;
-      line-height: 1.1;
-      color: var(--muted);
-      margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .aqhi-subrow .stat-sub {
-      font-size: 10px;
-      line-height: 1;
-      margin-top: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    #sunset {
-      font-size: 16px;
-      letter-spacing: -0.2px;
-    }
-
-    .alerts-link {
-      display: flex;
-      min-width: 0;
-      min-height: 0;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .alerts-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      height: 100%;
-      min-height: 70px;
-      border-radius: 12px;
-      border: 1px solid var(--alert-none-border);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-none-bg);
-      padding: 8px 14px;
-      min-width: 0;
-      overflow: hidden;
-      cursor: pointer;
-      transition: border-color 160ms ease, background 160ms ease;
-    }
-
-    .alerts-row.alert-none {
-      border-color: var(--alert-none-border);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-none-bg);
-    }
-
-    .alerts-row.alert-watch {
-      border-color: var(--alert-watch-border);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-watch-bg);
-    }
-
-    .alerts-row.alert-warning {
-      border-color: var(--alert-warning-border);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-warning-bg);
-    }
-
-    .alerts-dot {
-      width: 11px;
-      height: 11px;
-      border-radius: 999px;
-      flex-shrink: 0;
-      background: var(--alert-none-dot);
-      box-shadow: 0 0 0 3px rgba(126, 166, 255, 0.12);
-    }
-
-    .alerts-row.alert-watch .alerts-dot {
-      background: var(--alert-watch-dot);
-      box-shadow: 0 0 0 3px rgba(255, 209, 93, 0.16);
-    }
-
-    .alerts-row.alert-warning .alerts-dot {
-      background: var(--alert-warning-dot);
-      box-shadow: 0 0 0 3px rgba(255, 140, 111, 0.14);
-    }
-
-    .alerts-text {
-      min-width: 0;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 2px;
-    }
-
-    .alerts-title {
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1.05;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .alerts-sub {
-      font-size: 11px;
-      line-height: 1.05;
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .forecast {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-      min-height: 0;
-      align-self: end;
-    }
-
-    .forecast-day {
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      padding: 7px 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 0;
-      overflow: hidden;
-    }
-
-    .forecast-name {
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .forecast-date {
-      font-size: 11px;
-      line-height: 1.1;
-      color: var(--muted);
-      margin-top: 2px;
-      margin-bottom: 5px;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .forecast-icon-wrap {
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 5px;
-      flex-shrink: 0;
-    }
-
-    .forecast-icon-wrap img {
-      width: 33px;
-      height: 33px;
-      object-fit: contain;
-      display: block;
-    }
-
-    .forecast-condition {
-      font-size: 11px;
-      line-height: 1.1;
-      color: var(--muted);
-      margin-bottom: 4px;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100%;
-    }
-
-    .forecast-divider {
-      width: 18px;
-      height: 1px;
-      background: rgba(120, 160, 255, 0.22);
-      border-radius: 999px;
-      margin: 1px 0 5px;
-      flex-shrink: 0;
-    }
-
-    .forecast-high {
-      font-size: 15px;
-      font-weight: 800;
-      line-height: 1;
-      margin-bottom: 4px;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .forecast-night {
-      font-size: 11px;
-      line-height: 1.1;
-      color: var(--muted);
-      margin-bottom: 4px;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .forecast-precip {
-      font-size: 11px;
-      line-height: 1.1;
-      color: var(--text);
-      margin-top: auto;
-      text-align: center;
-      white-space: nowrap;
+    @media (max-width: 640px){
+      .widget{padding:10px}
+      .hero-main{grid-template-columns:1fr}
+      .hero-icon-wrap{justify-content:flex-start}
+      .current-temp{font-size:58px}
+      .condition{font-size:21px}
+      .mid{grid-template-columns:1fr;grid-template-areas:"wind" "air" "sunset" "uv" "humidity" "alert"}
+      .forecast{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .alert-card{flex-direction:column;align-items:flex-start}
+      .alert-cta{padding-top:2px}
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="top">
-      <div class="left-top">
-        <div class="title" id="title">View Royal</div>
-        <div class="updated" id="updated">Loading live conditions…</div>
-
-        <div class="hero">
-          <div class="hero-main">
-            <div class="temp" id="temp">--°</div>
-            <div class="temp-icon-wrap">
-              <img id="temp-icon" alt="Weather" src="https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/overcast.svg" />
-            </div>
-          </div>
-
-          <div class="status-row">
-            <div class="condition" id="condition">Loading</div>
-            <div class="precip" id="precip">&nbsp;</div>
-          </div>
-
-          <div class="feels" id="feels">Feels --°</div>
-          <div class="high-low-inline" id="high-low-inline">H: --°   L: --°</div>
-        </div>
-      </div>
-
-      <div class="right-top">
-        <div class="descriptor-space" id="descriptor-space">
-          <div class="descriptor-item">
-            <div class="descriptor-title">Checking conditions…</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="stats">
-      <div class="stat" id="wind-stat">
-        <div class="stat-label">Wind</div>
-        <div class="stat-value" id="wind-value">-- km/h</div>
-        <div class="stat-sub" id="wind-sub">Gust -- km/h</div>
-      </div>
-
-      <div class="stat air-quality aqhi-low" id="aqhi-stat">
-        <div class="stat-label">Air Quality</div>
-        <div class="aqhi-row">
-          <div class="aqhi-risk" id="aqhi-risk">Loading</div>
-        </div>
-        <div class="aqhi-subrow">
-          <div class="aqhi-badge" id="aqhi-badge">--</div>
-          <div class="stat-sub">Health Risk</div>
-        </div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">Sunset</div>
-        <div class="stat-value" id="sunset">--:--</div>
-        <div class="stat-sub">Local time</div>
-      </div>
-
-      <div class="stat" id="uv-stat">
-        <div class="stat-label">UV</div>
-        <div class="stat-value" id="uv-value">--</div>
-        <div class="stat-sub" id="uv-sub">Current</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-label">Humidity</div>
-        <div class="stat-value" id="humidity">--%</div>
-        <div class="stat-sub">Current</div>
-      </div>
-    </div>
-
-    <a class="alerts-link" id="alerts-link" href="https://weather.gc.ca/warnings/report_e.html?bc43=" target="_blank" rel="noopener noreferrer">
-      <div class="alerts-row alert-none" id="alerts-row">
-        <div class="alerts-dot"></div>
-        <div class="alerts-text">
-          <div class="alerts-title" id="alerts-title">Greater Victoria alerts</div>
-          <div class="alerts-sub" id="alerts-sub"></div>
-        </div>
-      </div>
-    </a>
-
-    <div class="forecast" id="forecast"></div>
+  <div class="widget" id="app">
+    <div class="loading">Loading weather…</div>
   </div>
 
   <script>
     const LAT = 48.4621;
     const LON = -123.4689;
     const TZ = 'America/Vancouver';
-    const AQHI_RADIUS_KM = 5;
+    const ALERTS_PAGE = 'https://weather.gc.ca/warnings/report_e.html?bc43=';
+    const ALERTS_FEED = 'https://weather.gc.ca/rss/battleboard/bc43_e.xml';
+    const AQHI_CSV = 'https://dd.weather.gc.ca/today/air_quality/aqhi/pyr/observation/realtime/csv';
 
-    const ALERTS_URL = 'https://weather.gc.ca/warnings/report_e.html?bc43=';
+    const AQHI_PREFERRED_STATIONS = [
+      { name: 'WestShore', lat: 48.4487, lon: -123.5043 },
+      { name: 'Victoria/Saanich', lat: 48.4579, lon: -123.3764 }
+    ];
 
-    const WEATHER_URL =
-      `https://api.open-meteo.com/v1/forecast` +
-      `?latitude=${LAT}` +
-      `&longitude=${LON}` +
-      `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,precipitation_probability,uv_index` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunset,uv_index_max` +
-      `&timezone=${encodeURIComponent(TZ)}` +
-      `&forecast_days=5` +
-      `&cell_selection=land`;
-
-    const AQHI_OBS_API_URL =
-      `https://api.weather.gc.ca/collections/aqhi-observations-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
-
-    const AQHI_PAGE_MAP = {
-      westshore: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html',
-      victoria_saanich: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
-    };
-
-    const TWN_AIR_PROXY_URL = 'https://r.jina.ai/http://www.theweathernetwork.com/en/city/ca/british-columbia/victoria/air-quality';
-    const ALERTS_PROXY_URL = 'https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=';
-
-    const el = (id) => document.getElementById(id);
-
-    const POLLUTANT_META = {
-      particles: {
-        label: 'Particles',
-        desc: 'Smoke, dust, soot'
-      },
-      ozone: {
-        label: 'Ozone (O₃)',
-        desc: 'Smog / sunny pollution'
-      },
-      no2: {
-        label: 'NO₂',
-        desc: 'Traffic / fuel exhaust'
-      },
-      unknown: {
-        label: 'Cause unknown',
-        desc: 'No clear pollutant posted'
-      }
-    };
-
-    function roundTemp(value) {
-      return `${Math.round(value)}°`;
-    }
-
-    function formatShortTime(isoString) {
-      const d = new Date(isoString);
-      return d.toLocaleTimeString('en-CA', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: TZ
-      }).replace(':00', '').toLowerCase();
-    }
-
-    function formatUpdated(timestamp = new Date()) {
-      return new Date(timestamp).toLocaleString('en-CA', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: TZ
-      }).replace(',', '');
-    }
-
-    function formatDayName(isoDate) {
-      return new Date(`${isoDate}T12:00:00`).toLocaleDateString('en-CA', {
-        weekday: 'short',
-        timeZone: TZ
-      });
-    }
-
-    function formatDayDate(isoDate) {
-      return new Date(`${isoDate}T12:00:00`).toLocaleDateString('en-CA', {
-        month: 'short',
-        day: 'numeric',
-        timeZone: TZ
-      });
-    }
+    const app = document.getElementById('app');
 
     function escapeHtml(str = '') {
       return String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
-    function compassDirection(deg) {
-      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-      return dirs[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
+    function proxied(url) {
+      return `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
     }
 
-    function getWindClass(speed) {
-      if (speed < 5) return '';
-      if (speed < 15) return 'wind-low';
-      if (speed < 30) return 'wind-moderate';
-      if (speed < 50) return 'wind-high';
-      return 'wind-veryhigh';
+    async function fetchJson(url) {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      return res.json();
     }
 
-    function getAqhiClass(value) {
-      if (value <= 3) return 'aqhi-low';
-      if (value <= 6) return 'aqhi-moderate';
-      if (value <= 9) return 'aqhi-high';
-      return 'aqhi-veryhigh';
+    async function fetchText(url) {
+      const res = await fetch(proxied(url), { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      return res.text();
     }
 
-    function getUvClass(value) {
-      if (!Number.isFinite(value) || value < 3) return 'uv-low';
-      if (value < 6) return 'uv-moderate';
-      if (value < 8) return 'uv-high';
-      return 'uv-veryhigh';
-    }
-
-    function getUvLabel(value) {
-      if (!Number.isFinite(value)) return 'Unavailable';
-      if (value < 3) return 'Low';
-      if (value < 6) return 'Moderate';
-      if (value < 8) return 'High';
-      if (value < 11) return 'Very High';
-      return 'Extreme';
-    }
-
-    function formatAqhiValue(value) {
-      if (!Number.isFinite(value)) return '—';
-      return value >= 10 ? '10+' : String(Math.round(value));
-    }
-
-    function aqhiRiskLabel(value) {
-      if (!Number.isFinite(value)) return 'Unavailable';
-      if (value <= 3) return 'Low';
-      if (value <= 6) return 'Moderate';
-      if (value <= 9) return 'High';
-      return 'Very High';
-    }
-
-    function iconUrl(name) {
-      return `https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/${name}.svg`;
-    }
-
-    function weatherMeta(code, isDay = true) {
-      if (code === 0) return { text: 'Clear', icon: isDay ? 'clear-day' : 'clear-night' };
-      if ([1, 2].includes(code)) return { text: 'Partly cloudy', icon: isDay ? 'partly-cloudy-day' : 'partly-cloudy-night' };
-      if (code === 3) return { text: 'Overcast', icon: 'overcast' };
-      if ([45, 48].includes(code)) return { text: 'Fog', icon: 'fog' };
-      if ([51, 53, 55, 56, 57].includes(code)) return { text: 'Drizzle', icon: 'drizzle' };
-      if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: 'Rain', icon: 'rain' };
-      if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: 'Snow', icon: 'snow' };
-      if ([95, 96, 99].includes(code)) return { text: 'Storm', icon: 'thunderstorms-rain' };
-      return { text: 'Overcast', icon: 'overcast' };
-    }
-
-    function distanceKm(lat1, lon1, lat2, lon2) {
+    function kmBetween(aLat, aLon, bLat, bLon) {
       const R = 6371;
-      const toRad = (d) => d * Math.PI / 180;
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) ** 2;
-      return 2 * R * Math.asin(Math.sqrt(a));
+      const dLat = (bLat - aLat) * Math.PI / 180;
+      const dLon = (bLon - aLon) * Math.PI / 180;
+      const s1 = Math.sin(dLat / 2);
+      const s2 = Math.sin(dLon / 2);
+      const aa = s1 * s1 + Math.cos(aLat * Math.PI / 180) * Math.cos(bLat * Math.PI / 180) * s2 * s2;
+      return 2 * R * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
     }
 
-    function fetchText(url) {
-      return fetch(url, { cache: 'no-store' }).then(async (res) => {
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-        return res.text();
+    function formatUpdated(date = new Date()) {
+      return `Updated ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+    }
+
+    function formatTime(dateLike) {
+      const d = new Date(dateLike);
+      return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function formatDayName(dateLike) {
+      return new Date(dateLike).toLocaleDateString([], { weekday: 'short' });
+    }
+
+    function formatShortDate(dateLike) {
+      return new Date(dateLike).toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+
+    function iconForCode(code, isDay = 1) {
+      const day = !!isDay;
+      const map = {
+        0: day ? '☀️' : '🌙',
+        1: day ? '🌤️' : '🌙',
+        2: day ? '⛅' : '☁️',
+        3: '☁️',
+        45: '🌫️',
+        48: '🌫️',
+        51: '🌦️',
+        53: '🌦️',
+        55: '🌧️',
+        56: '🌧️',
+        57: '🌧️',
+        61: '🌦️',
+        63: '🌧️',
+        65: '🌧️',
+        66: '🌨️',
+        67: '🌨️',
+        71: '🌨️',
+        73: '❄️',
+        75: '❄️',
+        77: '🌨️',
+        80: '🌦️',
+        81: '🌧️',
+        82: '🌧️',
+        85: '🌨️',
+        86: '❄️',
+        95: '⛈️',
+        96: '⛈️',
+        99: '⛈️'
+      };
+      return map[code] || '🌡️';
+    }
+
+    function conditionForCode(code) {
+      const map = {
+        0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Cloudy',45:'Fog',48:'Depositing rime fog',
+        51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',56:'Freezing drizzle',57:'Heavy freezing drizzle',
+        61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Heavy freezing rain',
+        71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Rain showers',81:'Heavy showers',
+        82:'Violent rain',85:'Snow showers',86:'Heavy snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Severe thunderstorm'
+      };
+      return map[code] || 'Conditions unavailable';
+    }
+
+    function aqhiRisk(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return { label:'Unavailable', color:'#8fb3d1' };
+      if (n <= 3) return { label:'Low', color:'#6fd38e' };
+      if (n <= 6) return { label:'Moderate', color:'#f1cd58' };
+      if (n <= 10) return { label:'High', color:'#f2994a' };
+      return { label:'Very High', color:'#eb5757' };
+    }
+
+    function uvRisk(uv) {
+      const n = Number(uv);
+      if (!Number.isFinite(n)) return { label:'Unavailable', color:'#8fb3d1' };
+      if (n < 3) return { label:'Low', color:'#6fd38e' };
+      if (n < 6) return { label:'Moderate', color:'#f1cd58' };
+      if (n < 8) return { label:'High', color:'#f2994a' };
+      if (n < 11) return { label:'Very High', color:'#eb5757' };
+      return { label:'Extreme', color:'#eb5757' };
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let current = '';
+      let row = [];
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        const n = text[i + 1];
+        if (c === '"') {
+          if (inQuotes && n === '"') { current += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (c === ',' && !inQuotes) {
+          row.push(current); current = '';
+        } else if ((c === '\n' || c === '\r') && !inQuotes) {
+          if (c === '\r' && n === '\n') i++;
+          if (current.length || row.length) { row.push(current); rows.push(row); }
+          current = ''; row = [];
+        } else {
+          current += c;
+        }
+      }
+      if (current.length || row.length) { row.push(current); rows.push(row); }
+      if (!rows.length) return [];
+      const headers = rows[0].map(h => h.trim());
+      return rows.slice(1).filter(r => r.some(v => String(v).trim() !== '')).map(r => {
+        const o = {};
+        headers.forEach((h, i) => o[h] = (r[i] ?? '').trim());
+        return o;
       });
     }
 
-    function fetchJson(url) {
-      return fetch(url, { cache: 'no-store' }).then(async (res) => {
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-        return res.json();
-      });
+    function normalizeKeyLookup(obj, keys) {
+      const lowered = Object.fromEntries(Object.keys(obj).map(k => [k.toLowerCase(), k]));
+      for (const key of keys) {
+        const hit = lowered[key.toLowerCase()];
+        if (hit) return obj[hit];
+      }
+      return '';
     }
 
-    function setWind(speed, gust, dirDeg) {
-      const windStat = el('wind-stat');
-      windStat.className = 'stat';
-      const windClass = getWindClass(speed);
-      if (windClass) windStat.classList.add(windClass);
-
-      const dir = compassDirection(dirDeg);
-      el('wind-value').textContent = `${Math.round(speed)} km/h ${dir}`;
-      el('wind-sub').textContent = gust && gust >= speed + 3
-        ? `Gust ${Math.round(gust)} km/h`
-        : speed < 5 ? 'Calm' : 'Steady';
+    function classifyAirDescriptor(textBlob) {
+      const text = String(textBlob || '').toLowerCase();
+      if (/\b(pm2\.5|pm10|particulate|particles?)\b/.test(text)) {
+        return { title: 'Air • Particles', body: 'Smoke, dust, soot' };
+      }
+      if (/\b(ozone|o₃|o3)\b/.test(text)) {
+        return { title: 'Air • Ozone (O₃)', body: 'Smog / sunny pollution' };
+      }
+      if (/\b(no₂|no2|nitrogen dioxide)\b/.test(text)) {
+        return { title: 'Air • NO₂', body: 'Traffic / fuel exhaust' };
+      }
+      return { title: 'Air • Cause unknown', body: 'No clear pollutant posted' };
     }
 
-    function setUv(uvNow, uvMax) {
-      const uvStat = el('uv-stat');
-      uvStat.className = 'stat';
-      uvStat.classList.add(getUvClass(uvNow));
+    function extractAlertInfo(feedText, fallbackPageText) {
+      const joined = `${feedText || ''}\n${fallbackPageText || ''}`;
+      if (/No alerts in effect\.?/i.test(joined)) {
+        return {
+          active: false,
+          headline: 'No alerts in effect',
+          descriptorTitle: '',
+          descriptorBody: '',
+          cta: ''
+        };
+      }
 
-      const roundedNow = Number.isFinite(uvNow) ? Math.round(uvNow * 10) / 10 : null;
-      const roundedMax = Number.isFinite(uvMax) ? Math.round(uvMax * 10) / 10 : null;
+      const titleMatch = joined.match(/<title>([^<]*(warning|watch|statement|advisory)[^<]*)<\/title>/i)
+        || joined.match(/<summary[^>]*>([\s\S]*?(warning|watch|statement|advisory)[\s\S]*?)<\/summary>/i)
+        || joined.match(/# Weather Alerts for:[\s\S]*?\n\n([A-Z][^\n]{3,120}(warning|watch|statement|advisory)[^\n]*)/i);
 
-      el('uv-value').textContent = roundedNow !== null ? String(roundedNow) : '—';
-      el('uv-sub').textContent = roundedMax !== null
-        ? `${getUvLabel(roundedNow)} • Max ${roundedMax}`
-        : getUvLabel(roundedNow);
-    }
-
-    function mapFeature(feature) {
-      const coords = feature?.geometry?.coordinates || [];
-      const lon = Number(coords[0]);
-      const lat = Number(coords[1]);
-      const name = String(feature?.properties?.location_name_en || '');
-      const locationId = String(feature?.properties?.location_id || '');
-      const distance = Number.isFinite(lat) && Number.isFinite(lon)
-        ? distanceKm(LAT, LON, lat, lon)
-        : Number.POSITIVE_INFINITY;
+      const raw = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : 'Weather alert in effect';
+      const pretty = raw.replace(/^Greater Victoria\s*[:-]\s*/i, '').trim();
 
       return {
-        feature,
-        lat,
-        lon,
-        name,
-        nameLower: name.toLowerCase(),
-        locationId,
-        distance
+        active: true,
+        headline: pretty,
+        descriptorTitle: pretty,
+        descriptorBody: 'Click For Full Details',
+        cta: 'Click For Full Details'
       };
     }
 
-    function pickAqhiFeature(features) {
-      if (!Array.isArray(features) || !features.length) return null;
+    function pickAQStation(rows) {
+      if (!Array.isArray(rows) || !rows.length) return null;
 
-      const mapped = features.map(mapFeature);
+      const enriched = rows.map(row => {
+        const station = normalizeKeyLookup(row, ['station', 'station_name', 'name', 'location', 'site', 'city']);
+        const latitude = parseFloat(normalizeKeyLookup(row, ['lat', 'latitude', 'y']));
+        const longitude = parseFloat(normalizeKeyLookup(row, ['lon', 'long', 'longitude', 'x']));
+        const value = normalizeKeyLookup(row, ['aqhi', 'aqhi_value', 'value']);
+        const category = normalizeKeyLookup(row, ['category', 'risk', 'health_risk', 'healthrisk']);
+        const date = normalizeKeyLookup(row, ['observation_datetime', 'datetime', 'date', 'issued_at', 'publication_datetime']);
+        const textBlob = Object.values(row).join(' | ');
+        let distanceKm = Number.POSITIVE_INFINITY;
+        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+          distanceKm = kmBetween(LAT, LON, latitude, longitude);
+        }
+        return { row, station, latitude, longitude, distanceKm, value, category, date, textBlob };
+      });
 
-      const westshore = mapped.find(x => x.nameLower.includes('westshore'));
-      if (westshore) return westshore;
+      for (const pref of AQHI_PREFERRED_STATIONS) {
+        const exact = enriched.find(r => r.station && r.station.toLowerCase().replace(/\s+/g,'') === pref.name.toLowerCase().replace(/\s+/g,''));
+        if (exact) return exact;
+      }
 
-      const victoriaSaanich = mapped.find(x =>
-        x.nameLower.includes('victoria/saanich') ||
-        (x.nameLower.includes('victoria') && x.nameLower.includes('saanich'))
+      const preferredNearby = enriched
+        .filter(r => Number.isFinite(r.distanceKm) && r.distanceKm <= 5)
+        .sort((a, b) => a.distanceKm - b.distanceKm)[0];
+
+      return preferredNearby || enriched[0] || null;
+    }
+
+    async function getWeather() {
+      const url = new URL('https://api.open-meteo.com/v1/forecast');
+      url.searchParams.set('latitude', LAT);
+      url.searchParams.set('longitude', LON);
+      url.searchParams.set('timezone', TZ);
+      url.searchParams.set('current', [
+        'temperature_2m','apparent_temperature','relative_humidity_2m','weather_code','is_day','wind_speed_10m'
+      ].join(','));
+      url.searchParams.set('hourly', ['uv_index'].join(','));
+      url.searchParams.set('daily', [
+        'weather_code','temperature_2m_max','temperature_2m_min','sunset','precipitation_probability_max','uv_index_max'
+      ].join(','));
+      return fetchJson(url.toString());
+    }
+
+    async function getAlerts() {
+      const [feedText, pageText] = await Promise.allSettled([fetchText(ALERTS_FEED), fetchText(ALERTS_PAGE)]);
+      return extractAlertInfo(
+        feedText.status === 'fulfilled' ? feedText.value : '',
+        pageText.status === 'fulfilled' ? pageText.value : ''
       );
-      if (victoriaSaanich) return victoriaSaanich;
-
-      const withinRadius = mapped
-        .filter(x => x.distance <= AQHI_RADIUS_KM)
-        .sort((a, b) => a.distance - b.distance);
-
-      return withinRadius[0] || null;
     }
 
-    function getAqhiPageUrl(nameLower) {
-      if (nameLower.includes('westshore')) return AQHI_PAGE_MAP.westshore;
-      if (nameLower.includes('victoria/saanich') || (nameLower.includes('victoria') && nameLower.includes('saanich'))) {
-        return AQHI_PAGE_MAP.victoria_saanich;
-      }
-      return null;
-    }
+    async function getAQHI() {
+      try {
+        const listing = await fetchText(AQHI_CSV);
+        const csvMatch = listing.match(/href=["']([^"']+\.csv)["']/i);
+        const csvUrl = csvMatch
+          ? new URL(csvMatch[1], AQHI_CSV + '/').toString()
+          : AQHI_CSV.replace(/\/$/, '') + '/';
 
-    function classifyPollutantFromText(text) {
-      const lower = String(text || '').toLowerCase();
+        let csvText = '';
+        if (csvMatch) {
+          csvText = await fetchText(csvUrl);
+        } else {
+          csvText = listing;
+        }
 
-      if (
-        lower.includes('primary pollutant') && (lower.includes('pm2.5') || lower.includes('pm 2.5'))
-      ) return 'particles';
+        const rows = parseCSV(csvText);
+        const selected = pickAQStation(rows);
+        if (!selected) {
+          return {
+            aqhiValue: '—',
+            riskLabel: 'Unavailable',
+            stationName: 'Unavailable',
+            descriptor: { title: 'Air • Cause unknown', body: 'No clear pollutant posted' },
+            observedAt: ''
+          };
+        }
 
-      if (
-        lower.includes('primary pollutant') && (lower.includes('ozone') || lower.includes('o₃') || lower.includes('o3'))
-      ) return 'ozone';
+        const risk = aqhiRisk(selected.value);
+        const explicitDescriptor = classifyAirDescriptor(selected.textBlob);
 
-      if (
-        lower.includes('primary pollutant') && (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2'))
-      ) return 'no2';
-
-      if (
-        lower.includes('pm2.5') ||
-        lower.includes('pm 2.5') ||
-        lower.includes('fine particles') ||
-        lower.includes('particulate matter')
-      ) return 'particles';
-
-      if (
-        lower.includes('ground-level ozone') ||
-        lower.includes('ozone (o₃)') ||
-        lower.includes('ozone (o3)') ||
-        lower.includes('ozone')
-      ) return 'ozone';
-
-      if (
-        lower.includes('nitrogen dioxide') ||
-        lower.includes('no₂') ||
-        lower.includes('no2')
-      ) return 'no2';
-
-      return null;
-    }
-
-    function setAirCard(aqhiData) {
-      const aqhiStat = el('aqhi-stat');
-      aqhiStat.className = 'stat air-quality';
-
-      const currentValue = Number(aqhiData?.value);
-
-      if (Number.isFinite(currentValue)) {
-        aqhiStat.classList.add(getAqhiClass(currentValue));
-        el('aqhi-risk').textContent = aqhiRiskLabel(currentValue);
-        el('aqhi-badge').textContent = formatAqhiValue(currentValue);
-      } else {
-        aqhiStat.classList.add('aqhi-low');
-        el('aqhi-risk').textContent = 'Unavailable';
-        el('aqhi-badge').textContent = '—';
+        return {
+          aqhiValue: selected.value || '—',
+          riskLabel: selected.category || risk.label,
+          stationName: selected.station || 'AQHI station',
+          descriptor: explicitDescriptor,
+          observedAt: selected.date || ''
+        };
+      } catch (err) {
+        return {
+          aqhiValue: '—',
+          riskLabel: 'Unavailable',
+          stationName: 'Unavailable',
+          descriptor: { title: 'Air • Cause unknown', body: 'No clear pollutant posted' },
+          observedAt: ''
+        };
       }
     }
 
-    function setDescriptorContent(aqhiData, alerts) {
-      const items = [];
+    function render(weather, alerts, air) {
+      const current = weather.current;
+      const nowUv = (() => {
+        const times = weather.hourly?.time || [];
+        const values = weather.hourly?.uv_index || [];
+        const now = new Date();
+        let bestIndex = 0;
+        let bestDiff = Infinity;
+        for (let i = 0; i < times.length; i++) {
+          const diff = Math.abs(new Date(times[i]).getTime() - now.getTime());
+          if (diff < bestDiff) { bestDiff = diff; bestIndex = i; }
+        }
+        return values[bestIndex];
+      })();
 
-      if (alerts && alerts.count > 0) {
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Alert • ${escapeHtml(alerts.shortLabel || 'Weather')}</div>
-            <div class="descriptor-sub">${escapeHtml(alerts.headline || 'Active alert')}</div>
-          </div>
-        `);
-      }
+      const uv = uvRisk(nowUv);
+      const risk = aqhiRisk(air.aqhiValue);
+      const high = Math.round(weather.daily.temperature_2m_max[0]);
+      const low = Math.round(weather.daily.temperature_2m_min[0]);
+      const sunset = formatTime(weather.daily.sunset[0]);
+      const currentIcon = iconForCode(current.weather_code, current.is_day);
+      const currentCondition = conditionForCode(current.weather_code);
 
-      const meta = POLLUTANT_META[aqhiData?.pollutantKey || 'unknown'];
+      const showAlertDescriptor = !!alerts.active;
+      const showAirDescriptor = !!air.descriptor;
+      const dividerClass = showAlertDescriptor && showAirDescriptor ? 'descriptor-divider show' : 'descriptor-divider';
 
-      if (items.length) {
-        items.push('<div class="descriptor-sep"></div>');
-      }
-
-      items.push(`
-        <div class="descriptor-item">
-          <div class="descriptor-title">Air • ${escapeHtml(meta.label)}</div>
-          <div class="descriptor-sub">${escapeHtml(meta.desc)}</div>
-        </div>
-      `);
-
-      el('descriptor-space').innerHTML = items.join('');
-    }
-
-    function renderForecast(daily) {
-      const forecast = el('forecast');
-      forecast.innerHTML = daily.time.map((date, i) => {
-        const meta = weatherMeta(daily.weather_code[i], true);
-        const precip = daily.precipitation_probability_max?.[i];
+      const forecastHtml = weather.daily.time.slice(0, 5).map((date, i) => {
+        const day = formatDayName(date);
+        const dateText = formatShortDate(date);
+        const icon = iconForCode(weather.daily.weather_code[i], 1);
+        const cond = conditionForCode(weather.daily.weather_code[i]);
+        const hi = Math.round(weather.daily.temperature_2m_max[i]);
+        const lo = Math.round(weather.daily.temperature_2m_min[i]);
+        const pop = weather.daily.precipitation_probability_max[i];
         return `
-          <div class="forecast-day">
-            <div class="forecast-name">${formatDayName(date)}</div>
-            <div class="forecast-date">${formatDayDate(date)}</div>
-            <div class="forecast-icon-wrap"><img alt="${escapeHtml(meta.text)}" src="${iconUrl(meta.icon)}" /></div>
-            <div class="forecast-condition">${escapeHtml(meta.text)}</div>
-            <div class="forecast-divider"></div>
-            <div class="forecast-high">${Math.round(daily.temperature_2m_max[i])}°</div>
-            <div class="forecast-night">Night ${Math.round(daily.temperature_2m_min[i])}°</div>
-            <div class="forecast-precip">${typeof precip === 'number' ? `💧 ${Math.round(precip)}%` : '&nbsp;'}</div>
+          <div class="forecast-card">
+            <div class="fc-day">${escapeHtml(day)}</div>
+            <div class="fc-date">${escapeHtml(dateText)}</div>
+            <div class="fc-icon">${icon}</div>
+            <div class="fc-cond">${escapeHtml(cond)}</div>
+            <div class="fc-divider"></div>
+            <div class="fc-high">${hi}°</div>
+            <div class="fc-low">Night ${lo}°</div>
+            <div class="fc-pop">💧 ${Number.isFinite(pop) ? pop : 0}%</div>
           </div>
         `;
       }).join('');
-    }
 
-    function setAlertsBar(alerts) {
-      const row = el('alerts-row');
-      const title = el('alerts-title');
-      const sub = el('alerts-sub');
-      el('alerts-link').href = ALERTS_URL;
-
-      row.className = 'alerts-row';
-
-      if (!alerts || alerts.status === 'error') {
-        row.classList.add('alert-none');
-        title.textContent = 'Greater Victoria alerts';
-        sub.textContent = 'Click For Full Details';
-        return;
-      }
-
-      if (alerts.count === 0) {
-        row.classList.add('alert-none');
-        title.textContent = 'No alerts in effect';
-        sub.textContent = '';
-        return;
-      }
-
-      const worst = alerts.severity || 'warning';
-      row.classList.add(worst === 'watch' ? 'alert-watch' : 'alert-warning');
-      title.textContent = alerts.headline || 'Active weather alert';
-      sub.textContent = 'Click For Full Details';
-    }
-
-    async function loadAqhi() {
-      try {
-        const obsData = await fetchJson(AQHI_OBS_API_URL);
-        const pickedObs = pickAqhiFeature(obsData?.features || []);
-
-        if (!pickedObs) {
-          return { value: null, pollutantKey: 'unknown' };
-        }
-
-        const obsProps = pickedObs.feature?.properties || {};
-        const obsValue = Number(obsProps.aqhi);
-
-        let pollutantKey = null;
-
-        const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
-        if (ecUrl) {
-          try {
-            const ecText = await fetchText(ecUrl);
-            pollutantKey = classifyPollutantFromText(ecText);
-          } catch (error) {
-            console.warn('EC AQ cause fetch failed.', error);
-          }
-        }
-
-        if (!pollutantKey) {
-          try {
-            const twnText = await fetchText(TWN_AIR_PROXY_URL);
-            pollutantKey = classifyPollutantFromText(twnText);
-          } catch (error) {
-            console.warn('TWN AQ cause fetch failed.', error);
-          }
-        }
-
-        return {
-          value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-          pollutantKey: pollutantKey || 'unknown'
-        };
-      } catch (error) {
-        console.warn('AQHI load failed.', error);
-        return {
-          value: null,
-          pollutantKey: 'unknown'
-        };
-      }
-    }
-
-    function parseAlerts(text) {
-      const clean = String(text || '').replace(/\r/g, '');
-
-      if (/No alerts in effect/i.test(clean)) {
-        return {
-          count: 0,
-          severity: 'none',
-          headline: 'No alerts in effect',
-          shortLabel: ''
-        };
-      }
-
-      const lines = clean.split('\n').map((l) => l.trim()).filter(Boolean);
-
-      const candidates = lines.filter((line) => {
-        return /warning|watch|advisory|statement/i.test(line) &&
-               !/learn more|feedback|about this site|features|weather shortcuts/i.test(line);
-      });
-
-      if (!candidates.length) {
-        return {
-          count: 0,
-          severity: 'none',
-          headline: 'No alerts in effect',
-          shortLabel: ''
-        };
-      }
-
-      const headline = candidates[0];
-      const severity = /watch/i.test(headline) && !/warning/i.test(headline)
-        ? 'watch'
-        : 'warning';
-
-      let shortLabel = 'Weather';
-      if (/wind/i.test(headline)) shortLabel = 'Wind';
-      else if (/rain/i.test(headline)) shortLabel = 'Rain';
-      else if (/snow/i.test(headline)) shortLabel = 'Snow';
-      else if (/fog/i.test(headline)) shortLabel = 'Fog';
-      else if (/thunder/i.test(headline)) shortLabel = 'Storm';
-      else if (/heat/i.test(headline)) shortLabel = 'Heat';
-      else if (/cold|arctic/i.test(headline)) shortLabel = 'Cold';
-
-      return {
-        count: candidates.length,
-        severity,
-        headline,
-        shortLabel
-      };
-    }
-
-    async function loadAlerts() {
-      try {
-        const text = await fetchText(ALERTS_PROXY_URL);
-        return parseAlerts(text);
-      } catch (error) {
-        console.warn('Alerts parse failed.', error);
-        return { status: 'error', count: 0 };
-      }
-    }
-
-    async function loadLiveWidget() {
-      try {
-        const [weather, aqhi, alerts] = await Promise.all([
-          fetchJson(WEATHER_URL),
-          loadAqhi(),
-          loadAlerts()
-        ]);
-
-        const current = weather.current;
-        const daily = weather.daily;
-        const currentMeta = weatherMeta(current.weather_code, Boolean(current.is_day));
-
-        el('title').textContent = 'View Royal';
-        el('updated').textContent = `Updated ${formatUpdated()}`;
-        el('temp').textContent = roundTemp(current.temperature_2m);
-        el('temp-icon').src = iconUrl(currentMeta.icon);
-        el('temp-icon').alt = currentMeta.text;
-        el('condition').textContent = currentMeta.text;
-
-        const precipProb = current.precipitation_probability;
-        el('precip').textContent = (typeof precipProb === 'number' && precipProb >= 15)
-          ? `Rain ${Math.round(precipProb)}%`
-          : '';
-
-        el('feels').textContent = `Feels ${roundTemp(current.apparent_temperature)}`;
-        el('high-low-inline').textContent = `H: ${Math.round(daily.temperature_2m_max[0])}°   L: ${Math.round(daily.temperature_2m_min[0])}°`;
-        el('humidity').textContent = `${Math.round(current.relative_humidity_2m)}%`;
-        el('sunset').textContent = formatShortTime(daily.sunset[0]);
-
-        setWind(current.wind_speed_10m, current.wind_gusts_10m, current.wind_direction_10m);
-        setUv(current.uv_index, daily.uv_index_max?.[0]);
-        setAirCard(aqhi);
-        setAlertsBar(alerts);
-        setDescriptorContent(aqhi, alerts);
-        renderForecast(daily);
-      } catch (error) {
-        console.error(error);
-        el('updated').textContent = 'Live widget failed to load';
-        el('condition').textContent = 'Preview error';
-        el('descriptor-space').innerHTML = `
-          <div class="descriptor-item">
-            <div class="descriptor-title">Weather widget failed</div>
+      app.innerHTML = `
+        <div class="top">
+          <div class="hero">
+            <div class="place">View Royal</div>
+            <div class="updated">${escapeHtml(formatUpdated())}</div>
+            <div class="hero-main">
+              <div class="temp-block">
+                <div class="current-temp">${Math.round(current.temperature_2m)}°</div>
+                <div class="condition">${escapeHtml(currentCondition)}</div>
+                <div class="meta">
+                  <span>Feels like ${Math.round(current.apparent_temperature)}°</span>
+                  <span>High ${high}° / Low ${low}°</span>
+                </div>
+              </div>
+              <div class="hero-icon-wrap">
+                <div class="hero-icon" aria-hidden="true">${currentIcon}</div>
+              </div>
+            </div>
           </div>
-        `;
-        setAlertsBar({ status: 'error' });
+
+          <div class="descriptor-stack">
+            <div class="descriptor ${showAlertDescriptor ? '' : 'hidden'}">
+              <div class="descriptor-title">${escapeHtml(alerts.descriptorTitle || '')}</div>
+              <div class="descriptor-body">${escapeHtml(alerts.descriptorBody || '')}</div>
+            </div>
+            <div class="${dividerClass}"></div>
+            <div class="descriptor ${showAirDescriptor ? '' : 'hidden'}">
+              <div class="descriptor-title">${escapeHtml(air.descriptor.title)}</div>
+              <div class="descriptor-body">${escapeHtml(air.descriptor.body)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mid">
+          <div class="card stat" id="card-wind">
+            <div class="stat-label">Wind</div>
+            <div class="stat-value">${Math.round(current.wind_speed_10m)} km/h</div>
+            <div class="stat-sub">Current wind speed</div>
+          </div>
+
+          <div class="card stat" id="card-air">
+            <div class="stat-label">Air Quality</div>
+            <div class="stat-value"><span class="aqhi-badge" style="background:${risk.color}">${escapeHtml(String(air.aqhiValue))}</span>${escapeHtml(air.riskLabel)}</div>
+            <div class="stat-sub">Health Risk</div>
+          </div>
+
+          <div class="card stat" id="card-sunset">
+            <div class="stat-label">Sunset</div>
+            <div class="stat-value">${escapeHtml(sunset)}</div>
+            <div class="stat-sub">Today</div>
+          </div>
+
+          <div class="card stat" id="card-uv">
+            <div class="stat-label">UV</div>
+            <div class="stat-value" style="font-size:25px">${Number.isFinite(Number(nowUv)) ? Number(nowUv).toFixed(1).replace(/\.0$/,'') : '—'}</div>
+            <div class="stat-sub" style="color:${uv.color}">${escapeHtml(uv.label)}</div>
+          </div>
+
+          <a class="alert-link" href="${escapeHtml(ALERTS_PAGE)}" target="_blank" rel="noopener noreferrer" aria-label="Open official alert details">
+            <div class="alert-card">
+              <div class="alert-text">
+                <div class="alert-main">${escapeHtml(alerts.headline)}</div>
+                <div class="alert-sub">${alerts.active ? 'Click For Full Details' : ''}</div>
+              </div>
+              <div class="alert-cta">${escapeHtml(alerts.cta || '')}</div>
+            </div>
+          </a>
+
+          <div class="card stat" id="card-humidity">
+            <div class="stat-label">Humidity</div>
+            <div class="stat-value">${Math.round(current.relative_humidity_2m)}%</div>
+            <div class="stat-sub">Relative humidity</div>
+          </div>
+        </div>
+
+        <div class="forecast">${forecastHtml}</div>
+      `;
+    }
+
+    async function init() {
+      try {
+        const [weather, alerts, air] = await Promise.all([
+          getWeather(),
+          getAlerts(),
+          getAQHI()
+        ]);
+        render(weather, alerts, air);
+      } catch (err) {
+        console.error(err);
+        app.innerHTML = `<div class="error">Weather widget failed to load.</div>`;
       }
     }
 
-    loadLiveWidget();
+    init();
+    setInterval(init, 15 * 60 * 1000);
   </script>
 </body>
 </html>
