@@ -59,12 +59,15 @@
       overflow: hidden;
     }
 
-    body { padding: 0; }
+    body {
+      padding: 0;
+      display: block;
+    }
 
     .card {
       width: 100%;
-      height: 100vh;
-      border-radius: 14px;
+      height: 100%;
+      border-radius: 0;
       overflow: hidden;
       position: relative;
       isolation: isolate;
@@ -72,12 +75,11 @@
         radial-gradient(circle at top right, rgba(22, 103, 165, 0.10), transparent 34%),
         linear-gradient(180deg, rgba(255,255,255,0.008), rgba(255,255,255,0)),
         linear-gradient(180deg, #050e1d, #040914);
-      border: 1px solid rgba(96, 128, 195, 0.12);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.025),
-        0 0 0 1px rgba(0,0,0,0.18);
-      -webkit-mask-image: -webkit-radial-gradient(white, black);
-      background-clip: padding-box;
+      border: none;
+      box-shadow: none;
+      -webkit-mask-image: none;
+      mask-image: none;
+      background-clip: border-box;
       padding: 10px;
       display: grid;
       grid-template-rows: auto auto auto;
@@ -260,7 +262,7 @@
       grid-template-columns: repeat(10, minmax(0, 1fr));
       grid-template-areas:
         "wind wind wind air air air air uv uv uv"
-        "alerts alerts alerts alerts alerts alerts sunset sunset humidity humidity";
+        "alerts alerts alerts alerts alerts alerts alerts sunset humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
@@ -289,6 +291,13 @@
       justify-content: center;
       min-width: 0;
       overflow: hidden;
+    }
+
+    .slot-sunset.stat {
+      padding-left: 7px;
+      padding-right: 7px;
+      align-items: center;
+      text-align: center;
     }
 
     .stat.air-quality.aqhi-low,
@@ -451,7 +460,12 @@
       text-align: center;
     }
 
-    #sunset, #humidity {
+    #sunset {
+      font-size: 15px;
+      letter-spacing: -0.15px;
+    }
+
+    #humidity {
       font-size: 15px;
       letter-spacing: -0.1px;
     }
@@ -671,6 +685,7 @@
       .descriptor-space { min-height: 108px; }
       .middle { gap: 7px; }
       .stat { min-height: 50px; padding: 6px 8px; }
+      .slot-sunset.stat { padding-left: 6px; padding-right: 6px; }
       .forecast-day { padding-top: 6px; padding-bottom: 6px; }
     }
   </style>
@@ -819,9 +834,11 @@
         hour12: true,
         timeZone: TZ
       })
-      .replace(':00', '')
       .replace(/\s*p\.m\./i, 'p')
       .replace(/\s*a\.m\./i, 'a')
+      .replace(/\s*pm/i, 'p')
+      .replace(/\s*am/i, 'a')
+      .replace(/\s+/g, '')
       .toLowerCase();
     }
 
@@ -1142,56 +1159,138 @@
       }).join('');
     }
 
+    function normalizeAlertText(text) {
+      return String(text || '')
+        .replace(/\r/g, '\n')
+        .replace(/\u00a0/g, ' ')
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, '$1')
+        .replace(/https?:\/\/\S+/gi, ' ')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n');
+    }
+
     function cleanAlertLine(line) {
       return String(line || '')
-        .replace(/^url source:\s*/i, '')
-        .replace(/https?:\/\/\S+/gi, '')
-        .replace(/weather\.gc\.ca\/warnings\/\S+/gi, '')
-        .replace(/^alert •.*$/i, '')
-        .replace(/^air •.*$/i, '')
+        .replace(/^\s*#{1,6}\s*/g, '')
+        .replace(/^\s*[*\-•]+\s*/g, '')
+        .replace(/^\s*\d+\.\s*/g, '')
+        .replace(/\s+/g, ' ')
         .trim();
     }
 
-    function parseAlerts(text) {
-      const clean = String(text || '').replace(/\r/g, '');
+    function isGarbageAlertLine(line) {
+      return (
+        !line ||
+        /^url source:?$/i.test(line) ||
+        /^source:?$/i.test(line) ||
+        /^warnings?$/i.test(line) ||
+        /^watches?$/i.test(line) ||
+        /^statements?$/i.test(line) ||
+        /^alerts?$/i.test(line) ||
+        /^weather$/i.test(line) ||
+        /^bc43$/i.test(line) ||
+        /^canada\.ca$/i.test(line) ||
+        /^environment canada$/i.test(line) ||
+        /^meteorological service of canada$/i.test(line) ||
+        /^weather shortcuts$/i.test(line) ||
+        /^feedback$/i.test(line) ||
+        /^about this site$/i.test(line) ||
+        /^share this page$/i.test(line) ||
+        /^add to favourites$/i.test(line) ||
+        /^menu$/i.test(line) ||
+        /^search$/i.test(line) ||
+        /^skip to main content$/i.test(line) ||
+        /^find a forecast$/i.test(line) ||
+        /^text forecast$/i.test(line) ||
+        /^hourly forecast$/i.test(line) ||
+        /^weekend forecast$/i.test(line) ||
+        /^warnings summary$/i.test(line) ||
+        /^detailed forecast$/i.test(line) ||
+        /^air quality$/i.test(line) ||
+        /^satellite and radar$/i.test(line) ||
+        /^marine forecast$/i.test(line) ||
+        /^past 24 hour conditions$/i.test(line) ||
+        /^station information$/i.test(line) ||
+        /^forecast issued/i.test(line) ||
+        /^issued at/i.test(line) ||
+        /^valid from/i.test(line) ||
+        /^ended at/i.test(line) ||
+        /^more details$/i.test(line) ||
+        /^learn more$/i.test(line) ||
+        /^view full details$/i.test(line)
+      );
+    }
 
-      if (/No alerts in effect/i.test(clean)) {
-        return { count: 0, severity: 'none', headline: 'No alerts in effect', shortLabel: '' };
+    function isRealAlertHeadline(line) {
+      if (!line) return false;
+      if (isGarbageAlertLine(line)) return false;
+      if (/warning|watch|advisory|statement/i.test(line) === false) return false;
+      if (/no alerts in effect/i.test(line)) return false;
+      if (/weather shortcuts|feedback|about this site|source|url source|bc43/i.test(line)) return false;
+      if (/^\(?[a-z ]+\)?$/i.test(line) && line.split(' ').length <= 2) return false;
+      return true;
+    }
+
+    function getAlertShortLabel(headline) {
+      if (/wind/i.test(headline)) return 'Wind';
+      if (/rain|rainfall/i.test(headline)) return 'Rain';
+      if (/snow|blizzard|snowfall/i.test(headline)) return 'Snow';
+      if (/fog/i.test(headline)) return 'Fog';
+      if (/thunder|storm/i.test(headline)) return 'Storm';
+      if (/heat/i.test(headline)) return 'Heat';
+      if (/cold|arctic|freez/i.test(headline)) return 'Cold';
+      if (/air quality/i.test(headline)) return 'Air';
+      if (/special weather statement/i.test(headline)) return 'Weather';
+      return 'Weather';
+    }
+
+    function parseAlerts(text) {
+      const normalized = normalizeAlertText(text);
+
+      if (/no alerts in effect/i.test(normalized)) {
+        return {
+          count: 0,
+          severity: 'none',
+          headline: 'No alerts in effect',
+          shortLabel: ''
+        };
       }
 
-      const lines = clean
+      const lines = normalized
         .split('\n')
         .map(cleanAlertLine)
         .filter(Boolean)
-        .filter(line =>
-          !/weather shortcuts|feedback|about this site|features|share this page|add to favourites/i.test(line)
-        );
+        .filter(line => !isGarbageAlertLine(line));
 
-      const candidates = lines.filter(line =>
-        /warning|watch|advisory|statement/i.test(line) &&
-        !/url source/i.test(line) &&
-        !/http/i.test(line) &&
-        !/weather\.gc\.ca/i.test(line) &&
-        !/^bc43$/i.test(line)
-      );
+      const candidates = [];
+      const seen = new Set();
+
+      for (const line of lines) {
+        if (!isRealAlertHeadline(line)) continue;
+        const key = line.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        candidates.push(line);
+      }
 
       if (!candidates.length) {
-        return { count: 0, severity: 'none', headline: 'No alerts in effect', shortLabel: '' };
+        return {
+          count: 0,
+          severity: 'none',
+          headline: 'No alerts in effect',
+          shortLabel: ''
+        };
       }
 
       const headline = candidates[0];
-      const severity = /watch/i.test(headline) && !/warning/i.test(headline) ? 'watch' : 'warning';
+      const severity = /warning/i.test(headline) ? 'warning' : 'watch';
 
-      let shortLabel = 'Weather';
-      if (/wind/i.test(headline)) shortLabel = 'Wind';
-      else if (/rain/i.test(headline)) shortLabel = 'Rain';
-      else if (/snow/i.test(headline)) shortLabel = 'Snow';
-      else if (/fog/i.test(headline)) shortLabel = 'Fog';
-      else if (/thunder/i.test(headline)) shortLabel = 'Storm';
-      else if (/heat/i.test(headline)) shortLabel = 'Heat';
-      else if (/cold|arctic/i.test(headline)) shortLabel = 'Cold';
-
-      return { count: candidates.length, severity, headline, shortLabel };
+      return {
+        count: candidates.length,
+        severity,
+        headline,
+        shortLabel: getAlertShortLabel(headline)
+      };
     }
 
     function setAlertsBar(alerts) {
@@ -1201,8 +1300,8 @@
 
       if (!alerts || alerts.status === 'error') {
         row.classList.add('alert-none');
-        el('alerts-title').textContent = 'Greater Victoria alerts';
-        el('alerts-sub').textContent = 'Click For Full Details';
+        el('alerts-title').textContent = 'No alerts in effect';
+        el('alerts-sub').textContent = '';
         return;
       }
 
