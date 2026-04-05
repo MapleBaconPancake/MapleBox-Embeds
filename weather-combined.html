@@ -71,8 +71,8 @@
       border: 1px solid var(--border);
       padding: 10px;
       display: grid;
-      grid-template-rows: auto auto auto auto;
-      gap: 5px;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      gap: 6px;
       overflow: hidden;
       contain: layout paint;
     }
@@ -436,13 +436,14 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      min-height: 50px;
+      min-height: 68px;
+      height: 68px;
       border-radius: 12px;
       border: 1px solid var(--alert-none-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
         var(--alert-none-bg);
-      padding: 8px 12px;
+      padding: 8px 14px;
       min-width: 0;
       overflow: hidden;
       cursor: pointer;
@@ -492,10 +493,11 @@
     .alerts-text {
       min-width: 0;
       flex: 1;
+      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 1px;
+      gap: 2px;
     }
 
     .alerts-title {
@@ -521,7 +523,8 @@
       grid-template-columns: repeat(5, 1fr);
       gap: 6px;
       min-height: 0;
-      margin-top: -1px;
+      margin-top: 0;
+      align-self: end;
     }
 
     .forecast-day {
@@ -649,7 +652,6 @@
         <div class="descriptor-space" id="descriptor-space">
           <div class="descriptor-item">
             <div class="descriptor-title">Checking conditions…</div>
-            <div class="descriptor-sub">Loading air and alerts.</div>
           </div>
         </div>
       </div>
@@ -721,9 +723,6 @@
 
     const AQHI_OBS_API_URL =
       `https://api.weather.gc.ca/collections/aqhi-observations-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
-
-    const AQHI_FCST_API_URL =
-      `https://api.weather.gc.ca/collections/aqhi-forecasts-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
 
     const AQHI_PAGE_MAP = {
       'westshore': {
@@ -850,12 +849,6 @@
       return 2 * R * Math.asin(Math.sqrt(a));
     }
 
-    function normalizePeriodLabel(raw = '') {
-      const s = String(raw).trim();
-      if (!s) return '';
-      return s.replace(/\s+/g, ' ');
-    }
-
     function fetchText(url) {
       return fetch(url, { cache: 'no-store' }).then(async (res) => {
         if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
@@ -933,102 +926,47 @@
       return withinRadius[0] || null;
     }
 
-    function dedupePeriods(periods) {
-      const seen = new Set();
-      const out = [];
-
-      for (const p of periods) {
-        const key = `${p.label}|${p.value}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          out.push(p);
-        }
-      }
-
-      return out;
-    }
-
     function scanCauseKeywords(text) {
       const lower = String(text || '').toLowerCase();
 
       const keywordMap = [
-        { patterns: ['wildfire smoke', 'forest fire smoke', 'fire smoke'], short: 'Smoke', detail: 'Smoke in the air' },
-        { patterns: ['wood smoke'], short: 'Smoke', detail: 'Wood smoke in the air' },
-        { patterns: ['smoke'], short: 'Smoke', detail: 'Smoke in the air' },
-        { patterns: ['pollen'], short: 'Pollen', detail: 'Pollen in the air' },
-        { patterns: ['smog'], short: 'Smog', detail: 'Smog in the air' },
-        { patterns: ['ozone'], short: 'Smog', detail: 'Extra ozone in the air' },
-        { patterns: ['fine particles', 'particulate matter', 'pm2.5', 'pm 2.5'], short: 'Fine particles', detail: 'Extra fine particles in the air' },
-        { patterns: ['dust'], short: 'Dust', detail: 'Dust in the air' },
-        { patterns: ['traffic', 'nitrogen dioxide', 'no2'], short: 'Traffic pollution', detail: 'Traffic pollution in the air' }
+        { patterns: ['wildfire smoke', 'forest fire smoke', 'fire smoke'], short: 'Smoke' },
+        { patterns: ['wood smoke'], short: 'Smoke' },
+        { patterns: ['smoke'], short: 'Smoke' },
+        { patterns: ['pollen'], short: 'Pollen' },
+        { patterns: ['smog'], short: 'Smog' },
+        { patterns: ['ozone'], short: 'Smog' },
+        { patterns: ['fine particles', 'particulate matter', 'pm2.5', 'pm 2.5'], short: 'Particles' },
+        { patterns: ['dust'], short: 'Dust' },
+        { patterns: ['traffic', 'nitrogen dioxide', 'no2'], short: 'Traffic' }
       ];
 
       for (const entry of keywordMap) {
         if (entry.patterns.some((p) => lower.includes(p))) {
-          return { short: entry.short, detail: entry.detail };
+          return entry.short;
         }
       }
 
       return null;
     }
 
-    function parseAqCauseFromEcPage(text) {
-      const found = scanCauseKeywords(text);
-      if (found) return found;
-      return null;
-    }
-
-    function parseAqCauseFromTwn(text) {
-      const found = scanCauseKeywords(text);
-      if (found) return found;
+    function parseTwnCause(text) {
+      const keyword = scanCauseKeywords(text);
+      if (keyword) return keyword;
 
       const clean = String(text || '').replace(/\r/g, ' ');
-      const simpleSentence =
-        clean.match(/air quality[^.]{0,140}\./i) ||
-        clean.match(/because[^.]{0,140}\./i) ||
-        clean.match(/due to[^.]{0,140}\./i);
+      const pairings = [
+        { re: /pollen[^.]{0,90}/i, short: 'Pollen' },
+        { re: /smoke[^.]{0,90}/i, short: 'Smoke' },
+        { re: /smog[^.]{0,90}/i, short: 'Smog' },
+        { re: /dust[^.]{0,90}/i, short: 'Dust' }
+      ];
 
-      if (simpleSentence) {
-        const sentence = simpleSentence[0].replace(/\s+/g, ' ').trim();
-        return {
-          short: 'Air conditions',
-          detail: sentence.charAt(0).toUpperCase() + sentence.slice(1)
-        };
+      for (const item of pairings) {
+        if (item.re.test(clean)) return item.short;
       }
 
       return null;
-    }
-
-    function setDescriptorContent(aqhiData, alerts) {
-      const items = [];
-
-      if (alerts && alerts.count > 0) {
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Alert • ${escapeHtml(alerts.shortLabel || 'Weather alert')}</div>
-            <div class="descriptor-sub">${escapeHtml(alerts.headline || 'Active alert')}</div>
-          </div>
-        `);
-      }
-
-      if (Number.isFinite(Number(aqhiData?.value))) {
-        if (items.length) items.push('<div class="descriptor-sep"></div>');
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Air • ${escapeHtml(aqhiData.causeShort || 'No cause posted')}</div>
-            <div class="descriptor-sub">${escapeHtml(aqhiData.causeDetail || 'No plain-language air-quality reason was found.')}</div>
-          </div>
-        `);
-      } else if (!items.length) {
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Air • Unavailable</div>
-            <div class="descriptor-sub">No preferred AQHI location was available, and no other official AQHI location was found within ${AQHI_RADIUS_KM} km.</div>
-          </div>
-        `);
-      }
-
-      el('descriptor-space').innerHTML = items.join('');
     }
 
     function setAirCard(aqhiData) {
@@ -1046,6 +984,31 @@
         el('aqhi-risk').textContent = 'Unavailable';
         el('aqhi-badge').textContent = '—';
       }
+    }
+
+    function setDescriptorContent(aqhiData, alerts) {
+      const items = [];
+
+      if (alerts && alerts.count > 0) {
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">Alert • ${escapeHtml(alerts.shortLabel || 'Weather')}</div>
+            <div class="descriptor-sub">${escapeHtml(alerts.headline || 'Active alert')}</div>
+          </div>
+        `);
+      }
+
+      const causeText = aqhiData?.causeShort || 'Cause unknown';
+
+      if (items.length) items.push('<div class="descriptor-sep"></div>');
+
+      items.push(`
+        <div class="descriptor-item">
+          <div class="descriptor-title">Air • ${escapeHtml(causeText)}</div>
+        </div>
+      `);
+
+      el('descriptor-space').innerHTML = items.join('');
     }
 
     function renderForecast(daily) {
@@ -1098,102 +1061,58 @@
 
     async function loadAqhi() {
       try {
-        const [obsData, fcstData] = await Promise.all([
-          fetchJson(AQHI_OBS_API_URL),
-          fetchJson(AQHI_FCST_API_URL)
-        ]);
+        const obsData = await fetchJson(AQHI_OBS_API_URL);
 
         const pickedObs = pickAqhiFeature(obsData?.features || []);
         if (!pickedObs) {
           return {
             value: null,
-            forecastPeriods: [],
-            causeShort: '',
-            causeDetail: ''
+            causeShort: 'Cause unknown'
           };
         }
 
         const obsProps = pickedObs.feature?.properties || {};
         const obsValue = Number(obsProps.aqhi);
 
-        let matchingForecasts = (fcstData?.features || []).filter((feature) => {
-          const props = feature?.properties || {};
-          const locationId = String(props.location_id || '');
-          const locationName = String(props.location_name_en || '');
-
-          if (pickedObs.locationId && locationId === pickedObs.locationId) return true;
-          return locationName === pickedObs.name;
-        });
-
-        matchingForecasts.sort((a, b) => {
-          const ta = new Date(a?.properties?.publication_datetime || a?.properties?.forecast_datetime || 0).getTime();
-          const tb = new Date(b?.properties?.publication_datetime || b?.properties?.forecast_datetime || 0).getTime();
-          return tb - ta;
-        });
-
-        const forecastPeriods = dedupePeriods(
-          matchingForecasts
-            .map((feature) => {
-              const props = feature?.properties || {};
-              const label =
-                props.period_name_en ||
-                props.forecast_period_text_en ||
-                props.period_en ||
-                props.period ||
-                '';
-              const value = Number(props.aqhi);
-
-              if (!label || !Number.isFinite(value)) return null;
-
-              return {
-                label: normalizePeriodLabel(label),
-                value: Math.round(value)
-              };
-            })
-            .filter(Boolean)
-        ).slice(0, 4);
-
-        let cause = null;
+        let causeShort = null;
 
         const pageInfo = getAqhiPageInfo(pickedObs.nameLower);
         if (pageInfo?.proxyUrl) {
           try {
             const ecText = await fetchText(pageInfo.proxyUrl);
-            cause = parseAqCauseFromEcPage(ecText);
+            causeShort = scanCauseKeywords(ecText);
           } catch (error) {
             console.warn('EC AQ cause fetch failed.', error);
           }
         }
 
-        if (!cause) {
+        if (!causeShort) {
           try {
             const twnText = await fetchText(TWN_AIR_PROXY_URL);
-            cause = parseAqCauseFromTwn(twnText);
+            causeShort = parseTwnCause(twnText);
           } catch (error) {
             console.warn('TWN AQ cause fetch failed.', error);
           }
         }
 
-        if (!cause) {
-          cause = {
-            short: 'No cause posted',
-            detail: 'No plain-language air-quality reason was found.'
-          };
+        if (!causeShort) {
+          const risk = aqhiRiskLabel(Math.round(obsValue));
+          if (risk === 'Low') causeShort = 'Low pollution';
+          else if (risk === 'Moderate') causeShort = 'Moderate pollution';
+          else if (risk === 'High') causeShort = 'High pollution';
+          else if (risk === 'Very High') causeShort = 'Heavy pollution';
+          else causeShort = 'Cause unknown';
         }
 
         return {
           value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-          forecastPeriods,
-          causeShort: cause.short,
-          causeDetail: cause.detail
+          causeShort
         };
       } catch (error) {
         console.warn('AQHI load failed.', error);
         return {
           value: null,
-          forecastPeriods: [],
-          causeShort: '',
-          causeDetail: ''
+          causeShort: 'Cause unknown'
         };
       }
     }
@@ -1231,12 +1150,12 @@
         ? 'watch'
         : 'warning';
 
-      let shortLabel = 'Weather alert';
+      let shortLabel = 'Weather';
       if (/wind/i.test(headline)) shortLabel = 'Wind';
       else if (/rain/i.test(headline)) shortLabel = 'Rain';
       else if (/snow/i.test(headline)) shortLabel = 'Snow';
       else if (/fog/i.test(headline)) shortLabel = 'Fog';
-      else if (/thunder/i.test(headline)) shortLabel = 'Thunderstorm';
+      else if (/thunder/i.test(headline)) shortLabel = 'Storm';
       else if (/heat/i.test(headline)) shortLabel = 'Heat';
       else if (/cold|arctic/i.test(headline)) shortLabel = 'Cold';
 
@@ -1299,7 +1218,6 @@
         el('descriptor-space').innerHTML = `
           <div class="descriptor-item">
             <div class="descriptor-title">Weather widget failed</div>
-            <div class="descriptor-sub">One or more live sources did not respond.</div>
           </div>
         `;
         setAlertsBar({ status: 'error' });
