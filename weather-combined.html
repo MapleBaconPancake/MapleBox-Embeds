@@ -6,45 +6,46 @@
   <title>Weather Combined Live</title>
   <style>
     :root{
-      --bg: #040b1f;
-      --card: #07122b;
-      --panel: #081630;
-      --panel-2: #091936;
-      --border: rgba(80, 145, 255, 0.22);
+      --bg: #030816;
+      --card: #07101f;
+      --panel: #071325;
+      --panel-2: #08172c;
+      --border: rgba(120, 155, 230, 0.14);
+      --border-strong: rgba(120, 155, 230, 0.2);
       --text: #f2f6ff;
-      --muted: rgba(223, 232, 255, 0.82);
+      --muted: rgba(223, 232, 255, 0.8);
 
-      --alert-none-bg: rgba(83, 125, 206, 0.10);
-      --alert-none-border: rgba(110, 150, 230, 0.22);
+      --alert-none-bg: rgba(70, 110, 170, 0.08);
+      --alert-none-border: rgba(90, 135, 210, 0.16);
       --alert-none-dot: #51d46a;
 
-      --alert-watch-bg: rgba(255, 193, 77, 0.13);
-      --alert-watch-border: rgba(255, 203, 97, 0.34);
+      --alert-watch-bg: rgba(255, 193, 77, 0.1);
+      --alert-watch-border: rgba(255, 203, 97, 0.22);
       --alert-watch-dot: #ffd15d;
 
-      --alert-warning-bg: rgba(255, 120, 90, 0.14);
-      --alert-warning-border: rgba(255, 130, 100, 0.36);
+      --alert-warning-bg: rgba(255, 120, 90, 0.11);
+      --alert-warning-border: rgba(255, 130, 100, 0.24);
       --alert-warning-dot: #ff8c6f;
 
       --aqhi-low-accent: #1499d3;
-      --aqhi-low-bg-top: rgba(20, 153, 211, 0.16);
-      --aqhi-low-bg-bottom: rgba(20, 153, 211, 0.08);
-      --aqhi-low-border: rgba(20, 153, 211, 0.42);
+      --aqhi-low-bg-top: rgba(20, 153, 211, 0.1);
+      --aqhi-low-bg-bottom: rgba(20, 153, 211, 0.04);
+      --aqhi-low-border: rgba(20, 153, 211, 0.26);
 
       --aqhi-moderate-accent: #ffc323;
-      --aqhi-moderate-bg-top: rgba(255, 195, 35, 0.18);
-      --aqhi-moderate-bg-bottom: rgba(255, 195, 35, 0.08);
-      --aqhi-moderate-border: rgba(255, 195, 35, 0.42);
+      --aqhi-moderate-bg-top: rgba(255, 195, 35, 0.12);
+      --aqhi-moderate-bg-bottom: rgba(255, 195, 35, 0.05);
+      --aqhi-moderate-border: rgba(255, 195, 35, 0.28);
 
       --aqhi-high-accent: #ff5b5b;
-      --aqhi-high-bg-top: rgba(255, 91, 91, 0.18);
-      --aqhi-high-bg-bottom: rgba(255, 91, 91, 0.08);
-      --aqhi-high-border: rgba(255, 91, 91, 0.42);
+      --aqhi-high-bg-top: rgba(255, 91, 91, 0.12);
+      --aqhi-high-bg-bottom: rgba(255, 91, 91, 0.05);
+      --aqhi-high-border: rgba(255, 91, 91, 0.28);
 
       --aqhi-veryhigh-accent: #ad0000;
-      --aqhi-veryhigh-bg-top: rgba(173, 0, 0, 0.18);
-      --aqhi-veryhigh-bg-bottom: rgba(173, 0, 0, 0.08);
-      --aqhi-veryhigh-border: rgba(173, 0, 0, 0.42);
+      --aqhi-veryhigh-bg-top: rgba(173, 0, 0, 0.13);
+      --aqhi-veryhigh-bg-bottom: rgba(173, 0, 0, 0.05);
+      --aqhi-veryhigh-border: rgba(173, 0, 0, 0.28);
     }
 
     * { box-sizing: border-box; }
@@ -64,11 +65,15 @@
     .card {
       width: 100%;
       height: 100vh;
-      border-radius: 0;
+      border-radius: 14px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
-        linear-gradient(180deg, #07122b, #040b1f);
-      border: none;
+        radial-gradient(circle at top right, rgba(32, 120, 185, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+        linear-gradient(180deg, #061021, #040914);
+      border: 1px solid rgba(110, 145, 220, 0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.03),
+        0 0 0 1px rgba(0,0,0,0.14);
       padding: 10px;
       display: grid;
       grid-template-rows: auto auto auto;
@@ -213,7 +218,6 @@
       align-items: flex-end;
       gap: 3px;
       min-width: 0;
-      background: transparent;
       margin-left: auto;
     }
 
@@ -221,7 +225,6 @@
       font-size: 14px;
       font-weight: 800;
       line-height: 1.12;
-      width: auto;
       max-width: 100%;
       overflow: hidden;
       display: -webkit-box;
@@ -233,7 +236,6 @@
       font-size: 11px;
       line-height: 1.18;
       color: var(--muted);
-      width: auto;
       max-width: 100%;
       overflow: hidden;
       display: -webkit-box;
@@ -244,7 +246,7 @@
     .descriptor-sep {
       width: min(100%, 220px);
       height: 1px;
-      background: rgba(120, 160, 255, 0.18);
+      background: rgba(120, 160, 255, 0.14);
       margin: 1px 0 2px;
       flex-shrink: 0;
     }
@@ -273,18 +275,16 @@
       min-height: 54px;
       border-radius: 12px;
       border: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
       padding: 7px 9px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       min-width: 0;
       overflow: hidden;
-    }
-
-    .stat.air-quality {
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
-      color: var(--text);
     }
 
     .stat.air-quality.aqhi-low,
@@ -481,6 +481,7 @@
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
         var(--alert-none-bg);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
       padding: 10px 14px;
       min-width: 0;
       overflow: hidden;
@@ -573,7 +574,10 @@
     .forecast-day {
       border-radius: 12px;
       border: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
       padding: 7px 4px;
       display: flex;
       flex-direction: column;
@@ -632,7 +636,7 @@
     .forecast-divider {
       width: 18px;
       height: 1px;
-      background: rgba(120, 160, 255, 0.22);
+      background: rgba(120, 160, 255, 0.18);
       border-radius: 999px;
       margin: 1px 0 5px;
       flex-shrink: 0;
@@ -875,7 +879,7 @@
     }
 
     function getWindClass(speed) {
-      if (!Number.isFinite(speed) || speed <= 1) return '';
+      if (!Number.isFinite(speed) || speed <= 0) return '';
       if (speed < 15) return 'wind-low';
       if (speed < 30) return 'wind-moderate';
       if (speed < 50) return 'wind-high';
@@ -1252,7 +1256,6 @@
 
         if (pickedObs) {
           const pickedTextTasks = [];
-
           const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
           if (ecUrl) pickedTextTasks.push(fetchText(ecUrl).catch(() => ''));
 
