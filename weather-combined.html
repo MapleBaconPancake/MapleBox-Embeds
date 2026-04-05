@@ -72,7 +72,7 @@
       padding: 10px;
       display: grid;
       grid-template-rows: auto auto auto auto;
-      gap: 7px;
+      gap: 5px;
       overflow: hidden;
       contain: layout paint;
     }
@@ -109,7 +109,11 @@
       text-overflow: ellipsis;
     }
 
-    .hero { min-width: 0; display: flex; flex-direction: column; }
+    .hero {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
 
     .hero-main {
       display: flex;
@@ -246,7 +250,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: 1.38fr 1.28fr 0.94fr 0.86fr;
+      grid-template-columns: 1.12fr 1.15fr 0.98fr 0.75fr;
       gap: 7px;
       min-height: 0;
     }
@@ -314,7 +318,7 @@
     .aqhi-subrow {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       margin-top: 4px;
       min-width: 0;
     }
@@ -385,11 +389,11 @@
       text-transform: uppercase;
       letter-spacing: 0.7px;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .stat-value {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       line-height: 1;
       white-space: nowrap;
@@ -407,6 +411,20 @@
       text-overflow: ellipsis;
     }
 
+    .aqhi-subrow .stat-sub {
+      font-size: 10px;
+      line-height: 1;
+      margin-top: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #sunset {
+      font-size: 16px;
+      letter-spacing: -0.2px;
+    }
+
     .alerts-link {
       display: block;
       text-decoration: none;
@@ -418,13 +436,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      min-height: 44px;
+      min-height: 50px;
       border-radius: 12px;
       border: 1px solid var(--alert-none-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
         var(--alert-none-bg);
-      padding: 8px 10px;
+      padding: 8px 12px;
       min-width: 0;
       overflow: hidden;
       cursor: pointer;
@@ -476,7 +494,8 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      justify-content: center;
+      gap: 1px;
     }
 
     .alerts-title {
@@ -490,7 +509,7 @@
 
     .alerts-sub {
       font-size: 11px;
-      line-height: 1.1;
+      line-height: 1.05;
       color: var(--muted);
       white-space: nowrap;
       overflow: hidden;
@@ -502,6 +521,7 @@
       grid-template-columns: repeat(5, 1fr);
       gap: 6px;
       min-height: 0;
+      margin-top: -1px;
     }
 
     .forecast-day {
@@ -643,7 +663,7 @@
       </div>
 
       <div class="stat air-quality aqhi-low" id="aqhi-stat">
-        <div class="stat-label">Air quality</div>
+        <div class="stat-label">Air Quality</div>
         <div class="aqhi-row">
           <div class="aqhi-risk" id="aqhi-risk">Loading</div>
         </div>
@@ -704,6 +724,17 @@
 
     const AQHI_FCST_API_URL =
       `https://api.weather.gc.ca/collections/aqhi-forecasts-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
+
+    const AQHI_PAGE_MAP = {
+      'westshore': {
+        pageUrl: 'https://weather.gc.ca/airquality/pages/bcaq-015_e.html',
+        proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html'
+      },
+      'victoria/saanich': {
+        pageUrl: 'https://weather.gc.ca/airquality/pages/bcaq-010_e.html',
+        proxyUrl: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
+      }
+    };
 
     const ALERTS_PROXY_URL = `https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=`;
 
@@ -853,102 +884,6 @@
         : speed < 5 ? 'Calm' : 'Steady';
     }
 
-    function setAir(aqhiData) {
-      const aqhiStat = el('aqhi-stat');
-      aqhiStat.className = 'stat air-quality';
-
-      const currentValue = Number(aqhiData?.value);
-
-      if (Number.isFinite(currentValue)) {
-        aqhiStat.classList.add(getAqhiClass(currentValue));
-        el('aqhi-risk').textContent = aqhiRiskLabel(currentValue);
-        el('aqhi-badge').textContent = formatAqhiValue(currentValue);
-      } else {
-        aqhiStat.classList.add('aqhi-low');
-        el('aqhi-risk').textContent = 'Unavailable';
-        el('aqhi-badge').textContent = '—';
-      }
-
-      const items = [];
-
-      if (Number.isFinite(currentValue)) {
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Air • ${escapeHtml(aqhiRiskLabel(currentValue))} Risk</div>
-            <div class="descriptor-sub">${escapeHtml(aqhiData.sourceName || 'AQHI')}${aqhiData?.observedAt ? ` • ${escapeHtml(aqhiData.observedAt)}` : ''}</div>
-          </div>
-        `);
-
-        const periods = Array.isArray(aqhiData?.forecastPeriods) ? aqhiData.forecastPeriods.slice(0, 3) : [];
-        for (const period of periods) {
-          items.push(`<div class="descriptor-sep"></div>`);
-          items.push(`
-            <div class="descriptor-item">
-              <div class="descriptor-title">${escapeHtml(period.label)}</div>
-              <div class="descriptor-sub">${escapeHtml(`${formatAqhiValue(period.value)} • ${aqhiRiskLabel(period.value)} Risk`)}</div>
-            </div>
-          `);
-        }
-      } else {
-        items.push(`
-          <div class="descriptor-item">
-            <div class="descriptor-title">Air • Unavailable</div>
-            <div class="descriptor-sub">No preferred AQHI location was available, and no other official AQHI location was found within ${AQHI_RADIUS_KM} km.</div>
-          </div>
-        `);
-      }
-
-      el('descriptor-space').innerHTML = items.join('');
-    }
-
-    function setAlerts(alerts) {
-      const row = el('alerts-row');
-      const title = el('alerts-title');
-      const sub = el('alerts-sub');
-      el('alerts-link').href = ALERTS_URL;
-
-      row.className = 'alerts-row';
-
-      if (!alerts || alerts.status === 'error') {
-        row.classList.add('alert-none');
-        title.textContent = 'Greater Victoria alerts';
-        sub.textContent = 'Click For Full Details';
-        return;
-      }
-
-      if (alerts.count === 0) {
-        row.classList.add('alert-none');
-        title.textContent = 'No alerts in effect';
-        sub.textContent = '';
-        return;
-      }
-
-      const worst = alerts.severity || 'warning';
-      row.classList.add(worst === 'watch' ? 'alert-watch' : 'alert-warning');
-      title.textContent = alerts.headline || 'Active weather alert';
-      sub.textContent = 'Click For Full Details';
-    }
-
-    function renderForecast(daily) {
-      const forecast = el('forecast');
-      forecast.innerHTML = daily.time.map((date, i) => {
-        const meta = weatherMeta(daily.weather_code[i], true);
-        const precip = daily.precipitation_probability_max?.[i];
-        return `
-          <div class="forecast-day">
-            <div class="forecast-name">${formatDayName(date)}</div>
-            <div class="forecast-date">${formatDayDate(date)}</div>
-            <div class="forecast-icon-wrap"><img alt="${escapeHtml(meta.text)}" src="${iconUrl(meta.icon)}" /></div>
-            <div class="forecast-condition">${escapeHtml(meta.text)}</div>
-            <div class="forecast-divider"></div>
-            <div class="forecast-high">${Math.round(daily.temperature_2m_max[i])}°</div>
-            <div class="forecast-night">Night ${Math.round(daily.temperature_2m_min[i])}°</div>
-            <div class="forecast-precip">${typeof precip === 'number' ? `💧 ${Math.round(precip)}%` : '&nbsp;'}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
     function mapFeature(feature) {
       const coords = feature?.geometry?.coordinates || [];
       const lon = Number(coords[0]);
@@ -968,6 +903,14 @@
         locationId,
         distance
       };
+    }
+
+    function getAqhiPageInfo(nameLower) {
+      if (nameLower.includes('westshore')) return AQHI_PAGE_MAP['westshore'];
+      if (nameLower.includes('victoria/saanich') || (nameLower.includes('victoria') && nameLower.includes('saanich'))) {
+        return AQHI_PAGE_MAP['victoria/saanich'];
+      }
+      return null;
     }
 
     function pickAqhiFeature(features) {
@@ -1006,6 +949,145 @@
       return out;
     }
 
+    function parseAqCauseFromPage(text) {
+      const clean = String(text || '').replace(/\r/g, ' ');
+      const lower = clean.toLowerCase();
+
+      const keywordMap = [
+        { patterns: ['wildfire smoke', 'forest fire smoke', 'fire smoke'], label: 'Smoke', detail: 'Smoke in the air' },
+        { patterns: ['smoke'], label: 'Smoke', detail: 'Smoke in the air' },
+        { patterns: ['pollen'], label: 'Pollen', detail: 'Pollen in the air' },
+        { patterns: ['smog', 'ozone'], label: 'Smog', detail: 'Smog in the air' },
+        { patterns: ['fine particles', 'particulate matter', 'pm2.5', 'pm 2.5'], label: 'Fine particles', detail: 'Extra fine particles in the air' },
+        { patterns: ['dust'], label: 'Dust', detail: 'Dust in the air' },
+        { patterns: ['traffic', 'nitrogen dioxide', 'no2'], label: 'Traffic pollution', detail: 'Traffic pollution in the air' },
+        { patterns: ['wood smoke'], label: 'Smoke', detail: 'Wood smoke in the air' }
+      ];
+
+      for (const entry of keywordMap) {
+        if (entry.patterns.some((p) => lower.includes(p))) {
+          return {
+            short: entry.label,
+            detail: entry.detail
+          };
+        }
+      }
+
+      return {
+        short: 'No specific cause posted',
+        detail: 'The official AQHI page did not name a plain-language cause.'
+      };
+    }
+
+    function setAir(aqhiData) {
+      const aqhiStat = el('aqhi-stat');
+      aqhiStat.className = 'stat air-quality';
+
+      const currentValue = Number(aqhiData?.value);
+
+      if (Number.isFinite(currentValue)) {
+        aqhiStat.classList.add(getAqhiClass(currentValue));
+        el('aqhi-risk').textContent = aqhiRiskLabel(currentValue);
+        el('aqhi-badge').textContent = formatAqhiValue(currentValue);
+      } else {
+        aqhiStat.classList.add('aqhi-low');
+        el('aqhi-risk').textContent = 'Unavailable';
+        el('aqhi-badge').textContent = '—';
+      }
+
+      const items = [];
+
+      if (Number.isFinite(currentValue)) {
+        const causeShort = aqhiData?.causeShort || 'No specific cause posted';
+        const causeDetail = aqhiData?.causeDetail || 'The official AQHI page did not name a plain-language cause.';
+
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">Air • ${escapeHtml(causeShort)}</div>
+            <div class="descriptor-sub">${escapeHtml(causeDetail)}</div>
+          </div>
+        `);
+
+        if (aqhiData?.observedAt || aqhiData?.sourceName) {
+          items.push(`<div class="descriptor-sep"></div>`);
+          items.push(`
+            <div class="descriptor-item">
+              <div class="descriptor-title">${escapeHtml(aqhiData.sourceName || 'AQHI')}</div>
+              <div class="descriptor-sub">${escapeHtml(aqhiData.observedAt || '')}</div>
+            </div>
+          `);
+        }
+
+        const periods = Array.isArray(aqhiData?.forecastPeriods) ? aqhiData.forecastPeriods.slice(0, 2) : [];
+        for (const period of periods) {
+          items.push(`<div class="descriptor-sep"></div>`);
+          items.push(`
+            <div class="descriptor-item">
+              <div class="descriptor-title">${escapeHtml(period.label)}</div>
+              <div class="descriptor-sub">${escapeHtml(`${formatAqhiValue(period.value)} • ${aqhiRiskLabel(period.value)} Risk`)}</div>
+            </div>
+          `);
+        }
+      } else {
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">Air • Unavailable</div>
+            <div class="descriptor-sub">No preferred AQHI location was available, and no other official AQHI location was found within ${AQHI_RADIUS_KM} km.</div>
+          </div>
+        `);
+      }
+
+      el('descriptor-space').innerHTML = items.join('');
+    }
+
+    function renderForecast(daily) {
+      const forecast = el('forecast');
+      forecast.innerHTML = daily.time.map((date, i) => {
+        const meta = weatherMeta(daily.weather_code[i], true);
+        const precip = daily.precipitation_probability_max?.[i];
+        return `
+          <div class="forecast-day">
+            <div class="forecast-name">${formatDayName(date)}</div>
+            <div class="forecast-date">${formatDayDate(date)}</div>
+            <div class="forecast-icon-wrap"><img alt="${escapeHtml(meta.text)}" src="${iconUrl(meta.icon)}" /></div>
+            <div class="forecast-condition">${escapeHtml(meta.text)}</div>
+            <div class="forecast-divider"></div>
+            <div class="forecast-high">${Math.round(daily.temperature_2m_max[i])}°</div>
+            <div class="forecast-night">Night ${Math.round(daily.temperature_2m_min[i])}°</div>
+            <div class="forecast-precip">${typeof precip === 'number' ? `💧 ${Math.round(precip)}%` : '&nbsp;'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setAlerts(alerts) {
+      const row = el('alerts-row');
+      const title = el('alerts-title');
+      const sub = el('alerts-sub');
+      el('alerts-link').href = ALERTS_URL;
+
+      row.className = 'alerts-row';
+
+      if (!alerts || alerts.status === 'error') {
+        row.classList.add('alert-none');
+        title.textContent = 'Greater Victoria alerts';
+        sub.textContent = 'Click For Full Details';
+        return;
+      }
+
+      if (alerts.count === 0) {
+        row.classList.add('alert-none');
+        title.textContent = 'No alerts in effect';
+        sub.textContent = '';
+        return;
+      }
+
+      const worst = alerts.severity || 'warning';
+      row.classList.add(worst === 'watch' ? 'alert-watch' : 'alert-warning');
+      title.textContent = alerts.headline || 'Active weather alert';
+      sub.textContent = 'Click For Full Details';
+    }
+
     async function loadAqhi() {
       try {
         const [obsData, fcstData] = await Promise.all([
@@ -1019,7 +1101,9 @@
             value: null,
             observedAt: '',
             sourceName: '',
-            forecastPeriods: []
+            forecastPeriods: [],
+            causeShort: '',
+            causeDetail: ''
           };
         }
 
@@ -1040,27 +1124,6 @@
           if (pickedObs.locationId && locationId === pickedObs.locationId) return true;
           return locationName === pickedObs.name;
         });
-
-        if (!matchingForecasts.length) {
-          const mappedForecasts = (fcstData?.features || []).map(mapFeature);
-          const localForecasts = mappedForecasts
-            .filter(x => x.distance <= AQHI_RADIUS_KM)
-            .sort((a, b) => a.distance - b.distance);
-
-          if (localForecasts.length) {
-            const localName = localForecasts[0].name;
-            const localId = localForecasts[0].locationId;
-
-            matchingForecasts = (fcstData?.features || []).filter((feature) => {
-              const props = feature?.properties || {};
-              const locationId = String(props.location_id || '');
-              const locationName = String(props.location_name_en || '');
-
-              if (localId && locationId === localId) return true;
-              return locationName === localName;
-            });
-          }
-        }
 
         matchingForecasts.sort((a, b) => {
           const ta = new Date(a?.properties?.publication_datetime || a?.properties?.forecast_datetime || 0).getTime();
@@ -1090,11 +1153,28 @@
             .filter(Boolean)
         ).slice(0, 4);
 
+        let causeShort = 'No specific cause posted';
+        let causeDetail = 'The official AQHI page did not name a plain-language cause.';
+
+        const pageInfo = getAqhiPageInfo(pickedObs.nameLower);
+        if (pageInfo?.proxyUrl) {
+          try {
+            const aqPageText = await fetchText(pageInfo.proxyUrl);
+            const cause = parseAqCauseFromPage(aqPageText);
+            causeShort = cause.short;
+            causeDetail = cause.detail;
+          } catch (error) {
+            console.warn('AQHI cause page fetch failed.', error);
+          }
+        }
+
         return {
           value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
           observedAt,
           sourceName: pickedObs.name || 'AQHI',
-          forecastPeriods
+          forecastPeriods,
+          causeShort,
+          causeDetail
         };
       } catch (error) {
         console.warn('AQHI load failed.', error);
@@ -1102,7 +1182,9 @@
           value: null,
           observedAt: '',
           sourceName: '',
-          forecastPeriods: []
+          forecastPeriods: [],
+          causeShort: '',
+          causeDetail: ''
         };
       }
     }
