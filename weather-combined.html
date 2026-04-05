@@ -629,7 +629,7 @@
         <div class="descriptor-space" id="descriptor-space">
           <div class="descriptor-item">
             <div class="descriptor-title">Checking conditions…</div>
-            <div class="descriptor-sub">Loading live weather, WestShore AQHI, and Greater Victoria alerts.</div>
+            <div class="descriptor-sub">Loading live weather, AQHI, and Greater Victoria alerts.</div>
           </div>
         </div>
       </div>
@@ -685,9 +685,9 @@
     const TZ = 'America/Vancouver';
 
     const LOCATION_TITLE = 'View Royal';
+    const AQHI_RADIUS_KM = 5;
 
     const ALERTS_URL = 'https://weather.gc.ca/warnings/report_e.html?bc43=';
-    const WESTSHORE_AQHI_PAGE = 'https://weather.gc.ca/airquality/pages/bcaq-015_e.html';
 
     const WEATHER_URL =
       `https://api.open-meteo.com/v1/forecast` +
@@ -705,7 +705,6 @@
     const AQHI_FCST_API_URL =
       `https://api.weather.gc.ca/collections/aqhi-forecasts-realtime/items?f=json&bbox=-123.72,48.28,-123.22,48.62&limit=200`;
 
-    const AQHI_PROXY_URL = `https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html`;
     const ALERTS_PROXY_URL = `https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=`;
 
     const el = (id) => document.getElementById(id);
@@ -859,6 +858,7 @@
       aqhiStat.className = 'stat air-quality';
 
       const currentValue = Number(aqhiData?.value);
+
       if (Number.isFinite(currentValue)) {
         aqhiStat.classList.add(getAqhiClass(currentValue));
         el('aqhi-risk').textContent = aqhiRiskLabel(currentValue);
@@ -870,22 +870,30 @@
       }
 
       const items = [];
-      const sourceName = aqhiData?.sourceName || 'WestShore AQHI';
 
-      items.push(`
-        <div class="descriptor-item">
-          <div class="descriptor-title">Air • ${escapeHtml(Number.isFinite(currentValue) ? `${aqhiRiskLabel(currentValue)} Risk` : 'Source Unavailable')}</div>
-          <div class="descriptor-sub">${escapeHtml(sourceName)}${aqhiData?.observedAt ? ` • ${aqhiData.observedAt}` : ''}</div>
-        </div>
-      `);
-
-      const periods = Array.isArray(aqhiData?.forecastPeriods) ? aqhiData.forecastPeriods.slice(0, 3) : [];
-      for (const period of periods) {
-        items.push(`<div class="descriptor-sep"></div>`);
+      if (Number.isFinite(currentValue)) {
         items.push(`
           <div class="descriptor-item">
-            <div class="descriptor-title">${escapeHtml(period.label)}</div>
-            <div class="descriptor-sub">${escapeHtml(`${formatAqhiValue(period.value)} • ${aqhiRiskLabel(period.value)} Risk`)}</div>
+            <div class="descriptor-title">Air • ${escapeHtml(aqhiRiskLabel(currentValue))} Risk</div>
+            <div class="descriptor-sub">${escapeHtml(aqhiData.sourceName || 'AQHI')}${aqhiData?.observedAt ? ` • ${escapeHtml(aqhiData.observedAt)}` : ''}</div>
+          </div>
+        `);
+
+        const periods = Array.isArray(aqhiData?.forecastPeriods) ? aqhiData.forecastPeriods.slice(0, 3) : [];
+        for (const period of periods) {
+          items.push(`<div class="descriptor-sep"></div>`);
+          items.push(`
+            <div class="descriptor-item">
+              <div class="descriptor-title">${escapeHtml(period.label)}</div>
+              <div class="descriptor-sub">${escapeHtml(`${formatAqhiValue(period.value)} • ${aqhiRiskLabel(period.value)} Risk`)}</div>
+            </div>
+          `);
+        }
+      } else {
+        items.push(`
+          <div class="descriptor-item">
+            <div class="descriptor-title">Air • Unavailable</div>
+            <div class="descriptor-sub">No preferred AQHI location was available, and no other official AQHI location was found within ${AQHI_RADIUS_KM} km.</div>
           </div>
         `);
       }
@@ -941,40 +949,52 @@
       }).join('');
     }
 
-    function pickNearestRelevantFeature(features, preferredNames = []) {
+    function mapFeature(feature) {
+      const coords = feature?.geometry?.coordinates || [];
+      const lon = Number(coords[0]);
+      const lat = Number(coords[1]);
+      const name = String(feature?.properties?.location_name_en || '');
+      const locationId = String(feature?.properties?.location_id || '');
+      const distance = Number.isFinite(lat) && Number.isFinite(lon)
+        ? distanceKm(LAT, LON, lat, lon)
+        : Number.POSITIVE_INFINITY;
+
+      return {
+        feature,
+        lat,
+        lon,
+        name,
+        nameLower: name.toLowerCase(),
+        locationId,
+        distance
+      };
+    }
+
+    function pickAqhiFeature(features) {
       if (!Array.isArray(features) || !features.length) return null;
 
-      const normalizedPreferred = preferredNames.map((n) => n.toLowerCase());
+      const mapped = features.map(mapFeature);
 
-      const mapped = features.map((feature) => {
-        const coords = feature?.geometry?.coordinates || [];
-        const lon = Number(coords[0]);
-        const lat = Number(coords[1]);
-        const name = String(feature?.properties?.location_name_en || '');
-        const distance = Number.isFinite(lat) && Number.isFinite(lon)
-          ? distanceKm(LAT, LON, lat, lon)
-          : Number.POSITIVE_INFINITY;
+      const westshore = mapped.find(x => x.nameLower.includes('westshore'));
+      if (westshore) return westshore;
 
-        const preferredRank = normalizedPreferred.findIndex((token) => name.toLowerCase().includes(token));
-        return {
-          feature,
-          name,
-          distance,
-          preferredRank: preferredRank === -1 ? 999 : preferredRank
-        };
-      });
+      const victoriaSaanich = mapped.find(x =>
+        x.nameLower.includes('victoria/saanich') ||
+        (x.nameLower.includes('victoria') && x.nameLower.includes('saanich'))
+      );
+      if (victoriaSaanich) return victoriaSaanich;
 
-      mapped.sort((a, b) => {
-        if (a.preferredRank !== b.preferredRank) return a.preferredRank - b.preferredRank;
-        return a.distance - b.distance;
-      });
+      const withinRadius = mapped
+        .filter(x => x.distance <= AQHI_RADIUS_KM)
+        .sort((a, b) => a.distance - b.distance);
 
-      return mapped[0]?.feature || null;
+      return withinRadius[0] || null;
     }
 
     function dedupePeriods(periods) {
       const seen = new Set();
       const out = [];
+
       for (const p of periods) {
         const key = `${p.label}|${p.value}`;
         if (!seen.has(key)) {
@@ -982,150 +1002,109 @@
           out.push(p);
         }
       }
+
       return out;
-    }
-
-    async function loadAqhiFromApi() {
-      const [obsData, fcstData] = await Promise.all([
-        fetchJson(AQHI_OBS_API_URL),
-        fetchJson(AQHI_FCST_API_URL)
-      ]);
-
-      const obsFeature = pickNearestRelevantFeature(
-        obsData?.features || [],
-        ['westshore', 'victoria', 'saanich']
-      );
-      if (!obsFeature) throw new Error('No nearby AQHI observation found');
-
-      const obsName = String(obsFeature.properties?.location_name_en || 'WestShore AQHI');
-      const obsLocationId = String(obsFeature.properties?.location_id || '');
-      const obsValue = Number(obsFeature.properties?.aqhi);
-      const obsText = String(obsFeature.properties?.observation_datetime_text_en || '');
-
-      let forecastCandidates = (fcstData?.features || []).filter((f) => {
-        const id = String(f?.properties?.location_id || '');
-        const name = String(f?.properties?.location_name_en || '').toLowerCase();
-        return (obsLocationId && id === obsLocationId) || name === obsName.toLowerCase();
-      });
-
-      if (!forecastCandidates.length) {
-        const picked = pickNearestRelevantFeature(fcstData?.features || [], [obsName, 'westshore', 'victoria', 'saanich']);
-        if (picked) {
-          const pickedName = String(picked.properties?.location_name_en || '');
-          const pickedId = String(picked.properties?.location_id || '');
-          forecastCandidates = (fcstData?.features || []).filter((f) => {
-            const id = String(f?.properties?.location_id || '');
-            const name = String(f?.properties?.location_name_en || '');
-            return (pickedId && id === pickedId) || name === pickedName;
-          });
-        }
-      }
-
-      forecastCandidates.sort((a, b) => {
-        const ta = new Date(a?.properties?.publication_datetime || a?.properties?.forecast_datetime || 0).getTime();
-        const tb = new Date(b?.properties?.publication_datetime || b?.properties?.forecast_datetime || 0).getTime();
-        return tb - ta;
-      });
-
-      const periods = dedupePeriods(
-        forecastCandidates
-          .map((f) => {
-            const p = f?.properties || {};
-            const label =
-              p.period_name_en ||
-              p.forecast_period_text_en ||
-              p.period_en ||
-              p.period ||
-              '';
-            const value = Number(p.aqhi);
-            if (!label || !Number.isFinite(value)) return null;
-            return { label: normalizePeriodLabel(label), value: Math.round(value) };
-          })
-          .filter(Boolean)
-      ).slice(0, 4);
-
-      return {
-        value: Math.round(obsValue),
-        observedAt: obsText,
-        sourceName: obsName,
-        forecastPeriods: periods
-      };
-    }
-
-    function parseWestshoreAqhi(text) {
-      const clean = String(text || '').replace(/\r/g, '');
-
-      const observedBlock =
-        clean.match(/Observed Conditions[\s\S]*?Calculated at:\s*([^\n]+)[\s\S]*?(\d+)\s+(Low|Moderate|High|Very High)\s+Risk/i) ||
-        clean.match(/Observed Conditions[\s\S]*?(\d+)\s*-\s*(Low|Moderate|High|Very High)\s+Risk[\s\S]*?Calculated at:\s*([^\n]+)/i);
-
-      let observedValue = null;
-      let observedAt = '';
-
-      if (observedBlock) {
-        const nums = observedBlock.slice(1).map((x) => String(x).trim());
-        const numeric = nums.find((x) => /^\d+$/.test(x));
-        const calc = nums.find((x) => /AM|PM|PDT|PST/i.test(x));
-        observedValue = numeric ? Number(numeric) : null;
-        observedAt = calc || '';
-      }
-
-      const forecastSectionMatch = clean.match(/Forecast Maximums[\s\S]*?(?:Issued at:[\s\S]*?\n)([\s\S]*?)(?:Who is at risk\?|Weather shortcuts|Footnote)/i);
-      const forecastPeriods = [];
-
-      if (forecastSectionMatch) {
-        const section = forecastSectionMatch[1];
-        const lines = section.split('\n').map((l) => l.trim()).filter(Boolean);
-
-        for (let i = 0; i < lines.length - 1; i++) {
-          const label = lines[i];
-          const next = lines[i + 1];
-          const m = next.match(/^(\d+)\s*-\s*(Low|Moderate|High|Very High)\s+Risk/i);
-          if (m && !/^Issued at:/i.test(label)) {
-            forecastPeriods.push({
-              label: normalizePeriodLabel(label),
-              value: Number(m[1])
-            });
-            i += 1;
-          }
-        }
-      }
-
-      if (!Number.isFinite(observedValue)) {
-        const simpleObs = clean.match(/Observed Conditions[\s\S]*?(\d+)\s*-\s*(Low|Moderate|High|Very High)\s+Risk/i);
-        if (simpleObs) observedValue = Number(simpleObs[1]);
-      }
-
-      return {
-        value: Number.isFinite(observedValue) ? observedValue : null,
-        observedAt,
-        sourceName: 'WestShore AQHI',
-        forecastPeriods: dedupePeriods(forecastPeriods).slice(0, 4)
-      };
     }
 
     async function loadAqhi() {
       try {
-        return await loadAqhiFromApi();
-      } catch (apiError) {
-        console.warn('AQHI API failed, falling back to WestShore page.', apiError);
-      }
+        const [obsData, fcstData] = await Promise.all([
+          fetchJson(AQHI_OBS_API_URL),
+          fetchJson(AQHI_FCST_API_URL)
+        ]);
 
-      try {
-        const text = await fetchText(AQHI_PROXY_URL);
-        const parsed = parseWestshoreAqhi(text);
-        if (!Number.isFinite(parsed.value)) throw new Error('AQHI fallback parse failed');
-        return parsed;
-      } catch (fallbackError) {
-        console.warn('AQHI fallback failed.', fallbackError);
-      }
+        const pickedObs = pickAqhiFeature(obsData?.features || []);
+        if (!pickedObs) {
+          return {
+            value: null,
+            observedAt: '',
+            sourceName: '',
+            forecastPeriods: []
+          };
+        }
 
-      return {
-        value: null,
-        observedAt: '',
-        sourceName: 'WestShore AQHI',
-        forecastPeriods: []
-      };
+        const obsProps = pickedObs.feature?.properties || {};
+        const obsValue = Number(obsProps.aqhi);
+        const observedAt =
+          String(
+            obsProps.observation_datetime_text_en ||
+            obsProps.forecast_datetime_text_en ||
+            ''
+          ).trim();
+
+        let matchingForecasts = (fcstData?.features || []).filter((feature) => {
+          const props = feature?.properties || {};
+          const locationId = String(props.location_id || '');
+          const locationName = String(props.location_name_en || '');
+
+          if (pickedObs.locationId && locationId === pickedObs.locationId) return true;
+          return locationName === pickedObs.name;
+        });
+
+        if (!matchingForecasts.length) {
+          const mappedForecasts = (fcstData?.features || []).map(mapFeature);
+          const localForecasts = mappedForecasts
+            .filter(x => x.distance <= AQHI_RADIUS_KM)
+            .sort((a, b) => a.distance - b.distance);
+
+          if (localForecasts.length) {
+            const localName = localForecasts[0].name;
+            const localId = localForecasts[0].locationId;
+
+            matchingForecasts = (fcstData?.features || []).filter((feature) => {
+              const props = feature?.properties || {};
+              const locationId = String(props.location_id || '');
+              const locationName = String(props.location_name_en || '');
+
+              if (localId && locationId === localId) return true;
+              return locationName === localName;
+            });
+          }
+        }
+
+        matchingForecasts.sort((a, b) => {
+          const ta = new Date(a?.properties?.publication_datetime || a?.properties?.forecast_datetime || 0).getTime();
+          const tb = new Date(b?.properties?.publication_datetime || b?.properties?.forecast_datetime || 0).getTime();
+          return tb - ta;
+        });
+
+        const forecastPeriods = dedupePeriods(
+          matchingForecasts
+            .map((feature) => {
+              const props = feature?.properties || {};
+              const label =
+                props.period_name_en ||
+                props.forecast_period_text_en ||
+                props.period_en ||
+                props.period ||
+                '';
+              const value = Number(props.aqhi);
+
+              if (!label || !Number.isFinite(value)) return null;
+
+              return {
+                label: normalizePeriodLabel(label),
+                value: Math.round(value)
+              };
+            })
+            .filter(Boolean)
+        ).slice(0, 4);
+
+        return {
+          value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
+          observedAt,
+          sourceName: pickedObs.name || 'AQHI',
+          forecastPeriods
+        };
+      } catch (error) {
+        console.warn('AQHI load failed.', error);
+        return {
+          value: null,
+          observedAt: '',
+          sourceName: '',
+          forecastPeriods: []
+        };
+      }
     }
 
     function parseAlerts(text) {
