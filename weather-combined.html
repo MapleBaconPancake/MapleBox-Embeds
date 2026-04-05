@@ -251,10 +251,10 @@
 
     .middle {
       display: grid;
-      grid-template-columns: repeat(9, minmax(0, 1fr));
+      grid-template-columns: repeat(10, minmax(0, 1fr));
       grid-template-areas:
-        "wind wind wind air air air air uv uv"
-        "alerts alerts alerts alerts alerts sunset sunset humidity humidity";
+        "wind wind wind air air air air uv uv uv"
+        "alerts alerts alerts alerts alerts sunset sunset sunset humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
@@ -768,6 +768,7 @@
     const LON = -123.4689;
     const TZ = 'America/Vancouver';
     const AQHI_RADIUS_KM = 5;
+    const POLLUTANT_STORAGE_KEY = 'maplebox_weather_last_pollutant_v1';
 
     const ALERTS_URL = 'https://weather.gc.ca/warnings/report_e.html?bc43=';
 
@@ -964,6 +965,23 @@
 
     function fetchJson(url) {
       return fetchWithTimeout(url, 'json');
+    }
+
+    function getStoredPollutant() {
+      try {
+        const value = localStorage.getItem(POLLUTANT_STORAGE_KEY);
+        return value && POLLUTANT_META[value] ? value : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function storePollutant(key) {
+      try {
+        if (key && key !== 'unknown') {
+          localStorage.setItem(POLLUTANT_STORAGE_KEY, key);
+        }
+      } catch {}
     }
 
     function setWind(speed, gust, dirDeg) {
@@ -1230,61 +1248,49 @@
         const obsData = await fetchJson(AQHI_OBS_API_URL);
         const pickedObs = pickAqhiFeature(obsData?.features || []);
 
-        if (!pickedObs) {
-          return { value: null, pollutantKey: 'unknown' };
-        }
-
-        const obsProps = pickedObs.feature?.properties || {};
-        const obsValue = Number(obsProps.aqhi);
-
         let pollutantKey = null;
 
-        const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
-        if (ecUrl) {
-          try {
-            const ecText = await fetchText(ecUrl);
-            pollutantKey = classifyPollutantFromText(ecText);
-          } catch (error) {
-            console.warn('EC AQ cause fetch failed.', error);
-          }
-        }
+        if (pickedObs) {
+          const pickedTextTasks = [];
 
-        if (!pollutantKey) {
-          try {
-            const twnText = await fetchText(TWN_AIR_PROXY_URL);
-            pollutantKey = classifyPollutantFromText(twnText) || tryInferPollutantByValues(twnText);
-          } catch (error) {
-            console.warn('TWN AQ cause fetch failed.', error);
-          }
-        }
+          const ecUrl = getAqhiPageUrl(pickedObs.nameLower);
+          if (ecUrl) pickedTextTasks.push(fetchText(ecUrl).catch(() => ''));
 
-        if (!pollutantKey) {
-          try {
-            const iqairText = await fetchText(IQAIR_VICTORIA_PROXY_URL);
-            pollutantKey = classifyPollutantFromText(iqairText) || tryInferPollutantByValues(iqairText);
-          } catch (error) {
-            console.warn('IQAir AQ cause fetch failed.', error);
-          }
-        }
+          pickedTextTasks.push(fetchText(TWN_AIR_PROXY_URL).catch(() => ''));
+          pickedTextTasks.push(fetchText(IQAIR_VICTORIA_PROXY_URL).catch(() => ''));
+          pickedTextTasks.push(fetchText(AQICN_VICTORIA_PROXY_URL).catch(() => ''));
 
-        if (!pollutantKey) {
-          try {
-            const aqicnText = await fetchText(AQICN_VICTORIA_PROXY_URL);
-            pollutantKey = classifyPollutantFromText(aqicnText) || tryInferPollutantByValues(aqicnText);
-          } catch (error) {
-            console.warn('AQICN AQ cause fetch failed.', error);
+          const texts = await Promise.all(pickedTextTasks);
+
+          for (const text of texts) {
+            pollutantKey = classifyPollutantFromText(text) || tryInferPollutantByValues(text);
+            if (pollutantKey) break;
           }
+
+          if (!pollutantKey) {
+            pollutantKey = getStoredPollutant() || 'unknown';
+          } else {
+            storePollutant(pollutantKey);
+          }
+
+          const obsProps = pickedObs.feature?.properties || {};
+          const obsValue = Number(obsProps.aqhi);
+
+          return {
+            value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
+            pollutantKey
+          };
         }
 
         return {
-          value: Number.isFinite(obsValue) ? Math.round(obsValue) : null,
-          pollutantKey: pollutantKey || 'unknown'
+          value: null,
+          pollutantKey: getStoredPollutant() || 'unknown'
         };
       } catch (error) {
         console.warn('AQHI load failed.', error);
         return {
           value: null,
-          pollutantKey: 'unknown'
+          pollutantKey: getStoredPollutant() || 'unknown'
         };
       }
     }
@@ -1393,7 +1399,7 @@
 
         const aqhiData = aqhi.status === 'fulfilled'
           ? aqhi.value
-          : { value: null, pollutantKey: 'unknown' };
+          : { value: null, pollutantKey: getStoredPollutant() || 'unknown' };
 
         const alertsData = alerts.status === 'fulfilled'
           ? alerts.value
