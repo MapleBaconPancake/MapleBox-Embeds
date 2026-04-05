@@ -31,10 +31,6 @@
       --stat-excellent-bg-bottom: rgba(28, 104, 67, 0.18);
       --stat-excellent-border: rgba(86, 214, 140, 0.42);
 
-      --stat-good-bg-top: rgba(61, 201, 255, 0.18);
-      --stat-good-bg-bottom: rgba(21, 82, 112, 0.18);
-      --stat-good-border: rgba(79, 204, 255, 0.38);
-
       --stat-fair-bg-top: rgba(255, 193, 77, 0.20);
       --stat-fair-bg-bottom: rgba(122, 82, 20, 0.18);
       --stat-fair-border: rgba(255, 203, 97, 0.38);
@@ -43,9 +39,9 @@
       --stat-poor-bg-bottom: rgba(122, 51, 28, 0.18);
       --stat-poor-border: rgba(255, 155, 110, 0.40);
 
-      --stat-extreme-bg-top: rgba(255, 84, 84, 0.24);
-      --stat-extreme-bg-bottom: rgba(120, 26, 26, 0.18);
-      --stat-extreme-border: rgba(255, 110, 110, 0.42);
+      --stat-verypoor-bg-top: rgba(255, 84, 84, 0.24);
+      --stat-verypoor-bg-bottom: rgba(120, 26, 26, 0.18);
+      --stat-verypoor-border: rgba(255, 110, 110, 0.42);
     }
 
     * { box-sizing: border-box; }
@@ -207,37 +203,72 @@
       align-self: stretch;
     }
 
-    .alert-summary {
-      min-height: 112px;
-      border-radius: 12px;
-      border: 1px solid var(--alert-info-border);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-        var(--alert-info-bg);
-      padding: 9px 10px;
+    .descriptor-space {
+      min-height: 116px;
       display: none;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .descriptor-card {
+      border-radius: 12px;
+      padding: 9px 10px;
+      display: flex;
       flex-direction: column;
       gap: 5px;
       min-width: 0;
       overflow: hidden;
       justify-content: flex-start;
+      border: 1px solid var(--alert-info-border);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+        var(--alert-info-bg);
     }
 
-    .alert-summary.watch {
+    .descriptor-card.watch {
       border-color: var(--alert-watch-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
         var(--alert-watch-bg);
     }
 
-    .alert-summary.warning {
+    .descriptor-card.warning {
       border-color: var(--alert-warning-border);
       background:
         linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
         var(--alert-warning-bg);
     }
 
-    .alert-summary-kicker {
+    .descriptor-card.excellent {
+      border-color: var(--stat-excellent-border);
+      background:
+        linear-gradient(180deg, var(--stat-excellent-bg-top), var(--stat-excellent-bg-bottom)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+    }
+
+    .descriptor-card.fair {
+      border-color: var(--stat-fair-border);
+      background:
+        linear-gradient(180deg, var(--stat-fair-bg-top), var(--stat-fair-bg-bottom)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+    }
+
+    .descriptor-card.poor {
+      border-color: var(--stat-poor-border);
+      background:
+        linear-gradient(180deg, var(--stat-poor-bg-top), var(--stat-poor-bg-bottom)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+    }
+
+    .descriptor-card.verypoor {
+      border-color: var(--stat-verypoor-border);
+      background:
+        linear-gradient(180deg, var(--stat-verypoor-bg-top), var(--stat-verypoor-bg-bottom)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+    }
+
+    .descriptor-kicker {
       font-size: 10px;
       line-height: 1;
       text-transform: uppercase;
@@ -246,7 +277,7 @@
       margin-bottom: 2px;
     }
 
-    .alert-summary-title {
+    .descriptor-title {
       font-size: 14px;
       font-weight: 800;
       line-height: 1.12;
@@ -257,7 +288,7 @@
       -webkit-box-orient: vertical;
     }
 
-    .alert-summary-sub {
+    .descriptor-sub {
       font-size: 11px;
       line-height: 1.18;
       color: var(--muted);
@@ -269,7 +300,7 @@
 
     .stats {
       display: grid;
-      grid-template-columns: 1.38fr 1.18fr 1fr 0.9fr;
+      grid-template-columns: 1.38fr 1.28fr 0.94fr 0.86fr;
       gap: 7px;
       min-height: 0;
     }
@@ -293,13 +324,6 @@
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
-    .stat.good {
-      border-color: var(--stat-good-border);
-      background:
-        linear-gradient(180deg, var(--stat-good-bg-top), var(--stat-good-bg-bottom)),
-        linear-gradient(180deg, var(--panel), var(--panel-2));
-    }
-
     .stat.fair {
       border-color: var(--stat-fair-border);
       background:
@@ -314,10 +338,10 @@
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
-    .stat.extreme {
-      border-color: var(--stat-extreme-border);
+    .stat.verypoor {
+      border-color: var(--stat-verypoor-border);
       background:
-        linear-gradient(180deg, var(--stat-extreme-bg-top), var(--stat-extreme-bg-bottom)),
+        linear-gradient(180deg, var(--stat-verypoor-bg-top), var(--stat-verypoor-bg-bottom)),
         linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
@@ -554,16 +578,15 @@
       .feels { font-size: 13px; }
       .high-low-inline { font-size: 12px; }
 
-      .alert-summary {
+      .descriptor-space {
         min-height: 98px;
-        padding: 8px 9px;
       }
 
-      .alert-summary-title { font-size: 12px; }
-      .alert-summary-sub { font-size: 10px; }
+      .descriptor-title { font-size: 12px; }
+      .descriptor-sub { font-size: 10px; }
 
       .stats {
-        grid-template-columns: 1.34fr 1.2fr 1fr 0.9fr;
+        grid-template-columns: 1.34fr 1.24fr 0.92fr 0.84fr;
       }
 
       .stat {
@@ -630,10 +653,18 @@
       </div>
 
       <div class="right-top">
-        <div class="alert-summary" id="alertSummary">
-          <div class="alert-summary-kicker">Alert details</div>
-          <div class="alert-summary-title" id="alertSummaryTitle">Alert active</div>
-          <div class="alert-summary-sub" id="alertSummarySub">Tap View below for details</div>
+        <div class="descriptor-space" id="descriptorSpace">
+          <div class="descriptor-card" id="alertDescriptor">
+            <div class="descriptor-kicker">Alert details</div>
+            <div class="descriptor-title" id="alertDescriptorTitle">Alert active</div>
+            <div class="descriptor-sub" id="alertDescriptorSub">Tap View below for details</div>
+          </div>
+
+          <div class="descriptor-card" id="airDescriptor">
+            <div class="descriptor-kicker">Air quality</div>
+            <div class="descriptor-title" id="airDescriptorTitle">Fair</div>
+            <div class="descriptor-sub" id="airDescriptorSub">Fine particles</div>
+          </div>
         </div>
       </div>
     </div>
@@ -648,7 +679,7 @@
       <div class="stat" id="airStat">
         <div class="stat-label">Air quality</div>
         <div class="stat-value" id="airQuality">--</div>
-        <div class="stat-sub" id="airQualitySub">AQI</div>
+        <div class="stat-sub" id="airQualitySub">Health Risk: --</div>
       </div>
 
       <div class="stat">
@@ -739,7 +770,8 @@
 
     const AIR_URL =
       `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LON}` +
-      `&current=us_aqi&timezone=auto`;
+      `&current=us_aqi,us_aqi_pm2_5,us_aqi_pm10,us_aqi_nitrogen_dioxide,us_aqi_ozone,us_aqi_sulphur_dioxide,us_aqi_carbon_monoxide` +
+      `&timezone=auto`;
 
     const ALERTS_URL = "https://victoria-alerts.j-r-moroschan.workers.dev";
     const OFFICIAL_ALERTS_URL = "https://weather.gc.ca/warnings/report_e.html?bc43=";
@@ -777,12 +809,17 @@
       });
     }
 
-    function fmtShortTime(dateStr) {
+    function fmtShortTimeCompact(dateStr) {
       const d = new Date(dateStr);
-      return d.toLocaleTimeString([], {
+      const parts = d.toLocaleTimeString([], {
         hour: "numeric",
         minute: "2-digit"
-      }).replace(/\s/g, "").toLowerCase();
+      }).toLowerCase();
+
+      return parts
+        .replace(/\s*p\.?m\.?/, "p")
+        .replace(/\s*a\.?m\.?/, "a")
+        .replace(/\s/g, "");
     }
 
     function currentIconFile(code, isDay) {
@@ -841,32 +878,49 @@
       return [71, 73, 75, 77, 85, 86].includes(code);
     }
 
-    function aqiLabel(aqi) {
-      if (aqi <= 25) return "Excellent";
-      if (aqi <= 50) return "Good";
-      if (aqi <= 100) return "Fair";
-      if (aqi <= 150) return "Poor";
-      return "Extremely Poor";
+    function airLabel(risk) {
+      if (risk <= 3) return "Excellent";
+      if (risk <= 6) return "Fair";
+      if (risk <= 10) return "Poor";
+      return "Very Poor";
     }
 
-    function aqiClass(aqi) {
-      if (aqi <= 25) return "excellent";
-      if (aqi <= 50) return "good";
-      if (aqi <= 100) return "fair";
-      if (aqi <= 150) return "poor";
-      return "extreme";
+    function airClass(risk) {
+      if (risk <= 3) return "excellent";
+      if (risk <= 6) return "fair";
+      if (risk <= 10) return "poor";
+      return "verypoor";
     }
 
     function windClass(speed) {
-      if (speed <= 15) return "excellent";
-      if (speed <= 30) return "good";
-      if (speed <= 45) return "fair";
+      if (speed <= 20) return "excellent";
+      if (speed <= 40) return "fair";
       if (speed <= 60) return "poor";
-      return "extreme";
+      return "verypoor";
     }
 
-    function resetStatClasses(el) {
-      el.classList.remove("excellent", "good", "fair", "poor", "extreme");
+    function resetSeverityClasses(el) {
+      el.classList.remove("excellent", "fair", "poor", "verypoor", "watch", "warning", "info");
+    }
+
+    function dominantAirCause(current) {
+      const causes = [
+        { key: "us_aqi_pm2_5", label: "Smoke / fine particles" },
+        { key: "us_aqi_pm10", label: "Dust / particles" },
+        { key: "us_aqi_ozone", label: "Ozone pollution" },
+        { key: "us_aqi_nitrogen_dioxide", label: "Traffic pollution" },
+        { key: "us_aqi_sulphur_dioxide", label: "Industrial pollution" },
+        { key: "us_aqi_carbon_monoxide", label: "Combustion pollution" }
+      ];
+
+      let best = null;
+      for (const item of causes) {
+        const value = current?.[item.key];
+        if (typeof value !== "number") continue;
+        if (!best || value > best.value) best = { label: item.label, value };
+      }
+
+      return best ? best.label : "Air pollution";
     }
 
     function alertSeverity(alert) {
@@ -921,14 +975,33 @@
       btn.style.display = showButton ? "inline-flex" : "none";
     }
 
-    function setAlertSummary(kind, title, sub, visible) {
-      const el = document.getElementById("alertSummary");
-      el.classList.remove("watch", "warning");
-      if (kind === "watch" || kind === "warning") el.classList.add(kind);
+    function updateDescriptorVisibility() {
+      const space = document.getElementById("descriptorSpace");
+      const alertVisible = document.getElementById("alertDescriptor").style.display !== "none";
+      const airVisible = document.getElementById("airDescriptor").style.display !== "none";
+      space.style.display = (alertVisible || airVisible) ? "flex" : "none";
+    }
 
-      document.getElementById("alertSummaryTitle").textContent = title;
-      document.getElementById("alertSummarySub").textContent = sub;
+    function setAlertDescriptor(kind, title, sub, visible) {
+      const el = document.getElementById("alertDescriptor");
+      resetSeverityClasses(el);
+      if (kind) el.classList.add(kind);
+
+      document.getElementById("alertDescriptorTitle").textContent = title || "";
+      document.getElementById("alertDescriptorSub").textContent = sub || "";
       el.style.display = visible ? "flex" : "none";
+      updateDescriptorVisibility();
+    }
+
+    function setAirDescriptor(kind, title, sub, visible) {
+      const el = document.getElementById("airDescriptor");
+      resetSeverityClasses(el);
+      if (kind) el.classList.add(kind);
+
+      document.getElementById("airDescriptorTitle").textContent = title || "";
+      document.getElementById("airDescriptorSub").textContent = sub || "";
+      el.style.display = visible ? "flex" : "none";
+      updateDescriptorVisibility();
     }
 
     const forecastCards = Array.from(document.querySelectorAll(".forecast-day")).map(card => ({
@@ -977,7 +1050,7 @@
         document.getElementById("updated").textContent =
           `Updated ${new Date(c.time).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).replace(/\s/g, "").toLowerCase()}`;
 
-        document.getElementById("sunsetTime").textContent = fmtShortTime(weatherData.daily.sunset[0]);
+        document.getElementById("sunsetTime").textContent = fmtShortTimeCompact(weatherData.daily.sunset[0]);
 
         const currentImg = document.getElementById("weatherIcon");
         setImgWithFallback(
@@ -987,7 +1060,7 @@
         );
 
         const windStat = document.getElementById("windStat");
-        resetStatClasses(windStat);
+        resetSeverityClasses(windStat);
         windStat.classList.add(windClass(windSpeed));
 
         for (let i = 0; i < 5; i++) {
@@ -1003,26 +1076,42 @@
         }
 
         const airStat = document.getElementById("airStat");
-        resetStatClasses(airStat);
+        resetSeverityClasses(airStat);
 
         if (airRes.ok) {
           const airData = await airRes.json();
-          const aqi = airData?.current?.us_aqi;
-          if (typeof aqi === "number") {
-            document.getElementById("airQuality").textContent = aqiLabel(aqi);
-            document.getElementById("airQualitySub").textContent = `AQI ${Math.round(aqi)}`;
-            airStat.classList.add(aqiClass(aqi));
+          const currentAir = airData?.current || {};
+          const risk = typeof currentAir.us_aqi === "number" ? Math.round(currentAir.us_aqi) : null;
+
+          if (typeof risk === "number") {
+            const label = airLabel(risk);
+            const klass = airClass(risk);
+            const cause = dominantAirCause(currentAir);
+
+            document.getElementById("airQuality").textContent = label;
+            document.getElementById("airQualitySub").textContent = `Health Risk: ${risk}`;
+
+            airStat.classList.add(klass);
+
+            if (risk > 3) {
+              setAirDescriptor(klass, label, cause, true);
+            } else {
+              setAirDescriptor("", "", "", false);
+            }
           } else {
             document.getElementById("airQuality").textContent = "Unavailable";
-            document.getElementById("airQualitySub").textContent = "AQI";
+            document.getElementById("airQualitySub").textContent = "Health Risk: --";
+            setAirDescriptor("", "", "", false);
           }
         } else {
           document.getElementById("airQuality").textContent = "Unavailable";
-          document.getElementById("airQualitySub").textContent = "AQI";
+          document.getElementById("airQualitySub").textContent = "Health Risk: --";
+          setAirDescriptor("", "", "", false);
         }
       } catch (err) {
         document.getElementById("updated").textContent = "Weather update failed";
         console.error("Weather widget error:", err);
+        setAirDescriptor("", "", "", false);
       }
     }
 
@@ -1044,7 +1133,7 @@
             data?.officialPage || OFFICIAL_ALERTS_URL,
             false
           );
-          setAlertSummary("", "", "", false);
+          setAlertDescriptor("", "", "", false);
           return;
         }
 
@@ -1068,11 +1157,9 @@
           true
         );
 
-        const desc = pickAlertDescription(top)
-          .replace(/\s+/g, " ")
-          .trim();
+        const desc = pickAlertDescription(top).replace(/\s+/g, " ").trim();
 
-        setAlertSummary(
+        setAlertDescriptor(
           severity,
           `${badge} · ${eventText}`,
           count > 1 ? `${desc} +${count - 1} more active.` : desc,
@@ -1087,7 +1174,7 @@
           OFFICIAL_ALERTS_URL,
           false
         );
-        setAlertSummary("", "", "", false);
+        setAlertDescriptor("", "", "", false);
       }
     }
 
