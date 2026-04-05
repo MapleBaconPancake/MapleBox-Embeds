@@ -16,7 +16,7 @@
 
       --alert-none-bg: rgba(83, 125, 206, 0.10);
       --alert-none-border: rgba(110, 150, 230, 0.22);
-      --alert-none-dot: #7ea6ff;
+      --alert-none-dot: #51d46a;
 
       --alert-watch-bg: rgba(255, 193, 77, 0.13);
       --alert-watch-border: rgba(255, 203, 97, 0.34);
@@ -251,10 +251,10 @@
 
     .middle {
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(10, minmax(0, 1fr));
       grid-template-areas:
-        "wind wind wind air air air uv uv"
-        "alerts alerts alerts alerts sunset sunset humidity humidity";
+        "wind wind wind air air air air uv uv uv"
+        "alerts alerts alerts alerts sunset sunset sunset humidity humidity humidity";
       gap: 8px;
       min-width: 0;
       min-height: 0;
@@ -270,7 +270,7 @@
     .slot-humidity { grid-area: humidity; }
 
     .stat {
-      min-height: 56px;
+      min-height: 54px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
@@ -285,6 +285,15 @@
     .stat.air-quality {
       background: linear-gradient(180deg, var(--panel), var(--panel-2));
       color: var(--text);
+    }
+
+    .stat.air-quality.aqhi-low,
+    .stat.uv-low,
+    .stat.wind-low {
+      border-color: var(--aqhi-low-border);
+      background:
+        linear-gradient(180deg, var(--aqhi-low-bg-top), var(--aqhi-low-bg-bottom)),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
     }
 
     .stat.air-quality.aqhi-moderate,
@@ -415,6 +424,7 @@
       min-width: 0;
     }
 
+    .stat.air-quality.aqhi-low .aqhi-badge { color: var(--aqhi-low-accent); }
     .stat.air-quality.aqhi-moderate .aqhi-badge { color: var(--aqhi-moderate-accent); }
     .stat.air-quality.aqhi-high .aqhi-badge { color: var(--aqhi-high-accent); }
     .stat.air-quality.aqhi-veryhigh .aqhi-badge { color: var(--aqhi-veryhigh-accent); }
@@ -490,7 +500,8 @@
       border-radius: 999px;
       flex-shrink: 0;
       background: var(--alert-none-dot);
-      box-shadow: 0 0 0 3px rgba(126, 166, 255, 0.12);
+      box-shadow: 0 0 0 3px rgba(81, 212, 106, 0.12);
+      align-self: center;
     }
 
     .alerts-row.alert-watch .alerts-dot {
@@ -509,13 +520,13 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 3px;
+      gap: 0;
     }
 
     .alerts-title {
       font-size: 13px;
       font-weight: 800;
-      line-height: 1.08;
+      line-height: 1.05;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -528,7 +539,12 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      min-height: 12px;
+      min-height: 0;
+      margin-top: 2px;
+    }
+
+    .alerts-sub:empty {
+      display: none;
     }
 
     .forecast {
@@ -639,7 +655,7 @@
       .temp { font-size: 54px; }
       .descriptor-space { min-height: 108px; }
       .middle { gap: 7px; }
-      .stat { min-height: 52px; padding: 6px 8px; }
+      .stat { min-height: 50px; padding: 6px 8px; }
       .forecast-day { padding-top: 6px; padding-bottom: 6px; }
     }
   </style>
@@ -758,6 +774,8 @@
     };
 
     const TWN_AIR_PROXY_URL = 'https://r.jina.ai/http://www.theweathernetwork.com/en/city/ca/british-columbia/victoria/air-quality';
+    const IQAIR_VICTORIA_PROXY_URL = 'https://r.jina.ai/http://www.iqair.com/ca/canada/british-columbia/victoria';
+    const AQICN_VICTORIA_PROXY_URL = 'https://r.jina.ai/http://aqicn.org/city/british-comlumbia/victoria-topaz/';
     const ALERTS_PROXY_URL = 'https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=';
 
     const FETCH_TIMEOUT_MS = 7000;
@@ -839,21 +857,24 @@
     }
 
     function getWindClass(speed) {
-      if (!Number.isFinite(speed) || speed < 15) return '';
+      if (!Number.isFinite(speed) || speed <= 1) return '';
+      if (speed < 15) return 'wind-low';
       if (speed < 30) return 'wind-moderate';
       if (speed < 50) return 'wind-high';
       return 'wind-veryhigh';
     }
 
     function getAqhiClass(value) {
-      if (!Number.isFinite(value) || value <= 3) return '';
+      if (!Number.isFinite(value) || value <= 1) return '';
+      if (value <= 3) return 'aqhi-low';
       if (value <= 6) return 'aqhi-moderate';
       if (value <= 9) return 'aqhi-high';
       return 'aqhi-veryhigh';
     }
 
     function getUvClass(value) {
-      if (!Number.isFinite(value) || value < 3) return '';
+      if (!Number.isFinite(value) || value <= 0) return '';
+      if (value < 3) return 'uv-low';
       if (value < 6) return 'uv-moderate';
       if (value < 8) return 'uv-high';
       return 'uv-veryhigh';
@@ -1026,6 +1047,7 @@
         lower.includes('ground-level ozone') ||
         lower.includes('ozone (o₃)') ||
         lower.includes('ozone (o3)') ||
+        lower.includes('o3 aqi') ||
         lower.includes('ozone')
       ) return 'ozone';
 
@@ -1036,6 +1058,25 @@
       ) return 'no2';
 
       return null;
+    }
+
+    function tryInferPollutantByValues(text) {
+      const lower = String(text || '').toLowerCase();
+
+      const pmMatch = lower.match(/pm2\.?5[^0-9]{0,30}([0-9]+(?:\.[0-9]+)?)/i);
+      const o3Match = lower.match(/(?:o₃|o3|ozone)[^0-9]{0,30}([0-9]+(?:\.[0-9]+)?)/i);
+      const no2Match = lower.match(/(?:no₂|no2|nitrogen dioxide)[^0-9]{0,30}([0-9]+(?:\.[0-9]+)?)/i);
+
+      const values = [
+        { key: 'particles', value: pmMatch ? Number(pmMatch[1]) : NaN },
+        { key: 'ozone', value: o3Match ? Number(o3Match[1]) : NaN },
+        { key: 'no2', value: no2Match ? Number(no2Match[1]) : NaN }
+      ].filter(x => Number.isFinite(x.value));
+
+      if (!values.length) return null;
+
+      values.sort((a, b) => b.value - a.value);
+      return values[0].key || null;
     }
 
     function setAirCard(aqhiData) {
@@ -1193,9 +1234,27 @@
         if (!pollutantKey) {
           try {
             const twnText = await fetchText(TWN_AIR_PROXY_URL);
-            pollutantKey = classifyPollutantFromText(twnText);
+            pollutantKey = classifyPollutantFromText(twnText) || tryInferPollutantByValues(twnText);
           } catch (error) {
             console.warn('TWN AQ cause fetch failed.', error);
+          }
+        }
+
+        if (!pollutantKey) {
+          try {
+            const iqairText = await fetchText(IQAIR_VICTORIA_PROXY_URL);
+            pollutantKey = classifyPollutantFromText(iqairText) || tryInferPollutantByValues(iqairText);
+          } catch (error) {
+            console.warn('IQAir AQ cause fetch failed.', error);
+          }
+        }
+
+        if (!pollutantKey) {
+          try {
+            const aqicnText = await fetchText(AQICN_VICTORIA_PROXY_URL);
+            pollutantKey = classifyPollutantFromText(aqicnText) || tryInferPollutantByValues(aqicnText);
+          } catch (error) {
+            console.warn('AQICN AQ cause fetch failed.', error);
           }
         }
 
