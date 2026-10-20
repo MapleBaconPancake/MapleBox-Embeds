@@ -838,7 +838,7 @@
   </div>
 
   <script>
-    // Updated to Downtown Victoria / Inner Harbour coordinates
+    // Downtown Victoria / Inner Harbour coordinates
     const LAT = 48.4284;
     const LON = -123.3656;
     const TZ = 'America/Vancouver';
@@ -865,11 +865,6 @@
       westshore: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-015_e.html',
       victoria_saanich: 'https://r.jina.ai/http://weather.gc.ca/airquality/pages/bcaq-010_e.html'
     };
-
-    const TWN_AIR_PROXY_URL = 'https://r.jina.ai/http://www.theweathernetwork.com/en/city/ca/british-columbia/victoria/air-quality';
-    const IQAIR_VICTORIA_PROXY_URL = 'https://r.jina.ai/http://www.iqair.com/ca/canada/british-columbia/victoria';
-    const AQICN_VICTORIA_PROXY_URL = 'https://r.jina.ai/http://aqicn.org/city/british-comlumbia/victoria-topaz/';
-    const ALERTS_PROXY_URL = 'https://r.jina.ai/http://weather.gc.ca/warnings/report_e.html?bc43=';
 
     const FETCH_TIMEOUT_MS = 9000;
 
@@ -927,15 +922,6 @@
         day: 'numeric',
         timeZone: TZ
       });
-    }
-
-    function escapeHtml(str = '') {
-      return String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
     }
 
     function compassDirection(deg) {
@@ -996,23 +982,6 @@
       return { text: 'Overcast', icon: 'overcast' };
     }
 
-    function getStoredPollutant() {
-      try {
-        const value = localStorage.getItem(POLLUTANT_STORAGE_KEY);
-        return value && POLLUTANT_META[value] ? value : null;
-      } catch {
-        return null;
-      }
-    }
-
-    function storePollutant(key) {
-      try {
-        if (key && key !== 'unknown') {
-          localStorage.setItem(POLLUTANT_STORAGE_KEY, key);
-        }
-      } catch {}
-    }
-
     async function fetchWithTimeout(url, responseType = 'json') {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -1026,7 +995,6 @@
       }
     }
 
-    const fetchText = (url) => fetchWithTimeout(url, 'text');
     const fetchJson = (url) => fetchWithTimeout(url, 'json');
 
     function setWind(speed, gust, dirDeg) {
@@ -1079,7 +1047,6 @@
       if (!Array.isArray(features) || !features.length) return null;
       const mapped = features.map(mapFeature);
 
-      // Prioritize Victoria/Saanich downtown monitoring station
       const victoriaSaanich = mapped.find(x =>
         x.nameLower.includes('victoria/saanich') ||
         x.nameLower.includes('victoria') ||
@@ -1095,44 +1062,112 @@
         .sort((a, b) => a.distance - b.distance)[0] || null;
     }
 
-    function getAqhiPageUrl(nameLower) {
-      if (nameLower.includes('victoria/saanich') || (nameLower.includes('victoria') && nameLower.includes('saanich'))) {
-        return AQHI_PAGE_MAP.victoria_saanich;
+    // Main Weather Data Fetch & Render
+    async function loadWeather() {
+      try {
+        el('updated').textContent = 'Loading live conditions…';
+        
+        const weatherData = await fetchJson(WEATHER_URL);
+        const current = weatherData.current;
+        const daily = weatherData.daily;
+
+        const tempVal = current.temperature_2m;
+        const feelsVal = current.apparent_temperature;
+        const code = current.weather_code;
+        const isDay = Boolean(current.is_day);
+        const humidityVal = current.relative_humidity_2m;
+        const windSpeed = current.wind_speed_10m;
+        const windGust = current.wind_gusts_10m;
+        const windDir = current.wind_direction_10m;
+        const uvIndex = current.uv_index;
+
+        el('temp').textContent = roundTemp(tempVal);
+        el('feels').textContent = `Feels ${roundTemp(feelsVal)}`;
+        el('humidity').textContent = `${Math.round(humidityVal)}%`;
+        
+        const meta = weatherMeta(code, isDay);
+        el('condition').textContent = meta.text;
+        el('temp-icon').src = iconUrl(meta.icon);
+
+        const highVal = daily.temperature_2m_max[0];
+        const lowVal = daily.temperature_2m_min[0];
+        el('high-low-inline').textContent = `H: ${roundTemp(highVal)}    L: ${roundTemp(lowVal)}`;
+
+        if (daily.sunset && daily.sunset[0]) {
+          el('sunset').textContent = formatShortTime(daily.sunset[0]);
+        }
+
+        setWind(windSpeed, windGust, windDir);
+        setUv(uvIndex);
+
+        // Render 5-day forecast
+        const forecastContainer = el('forecast');
+        forecastContainer.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+          const dDate = daily.time[i];
+          const dMax = daily.temperature_2m_max[i];
+          const dMin = daily.temperature_2m_min[i];
+          const dCode = weatherData.hourly ? weatherData.hourly.weather_code[i * 24 + 12] : 3;
+          const dMeta = weatherMeta(dCode, true);
+          const precipProb = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : 0;
+
+          const dayEl = document.createElement('div');
+          dayEl.className = 'forecast-day';
+          dayEl.innerHTML = `
+            <div class="forecast-name">${i === 0 ? 'Today' : formatDayName(dDate)}</div>
+            <div class="forecast-date">${formatDayDate(dDate)}</div>
+            <div class="forecast-icon-wrap"><img src="${iconUrl(dMeta.icon)}" alt="" /></div>
+            <div class="forecast-condition">${dMeta.text}</div>
+            <div class="forecast-divider"></div>
+            <div class="forecast-high">${roundTemp(dMax)}</div>
+            <div class="forecast-night">Night ${roundTemp(dMin)}</div>
+            <div class="forecast-precip">💧 ${precipProb}%</div>
+          `;
+          forecastContainer.appendChild(dayEl);
+        }
+
+        el('updated').textContent = `Updated ${formatUpdated()}`;
+      } catch (err) {
+        console.error('Weather load error:', err);
+        el('updated').textContent = 'Failed to load live conditions';
       }
-      if (nameLower.includes('westshore')) return AQHI_PAGE_MAP.westshore;
-      return null;
     }
 
-    function classifyPollutantFromText(text) {
-      const lower = String(text || '').toLowerCase();
+    // AQHI Data Fetch & Render
+    async function loadAqhi() {
+      try {
+        const data = await fetchJson(AQHI_OBS_API_URL);
+        const features = data.features || [];
+        const matched = pickAqhiFeature(features);
+        
+        if (matched && matched.feature) {
+          const props = matched.feature.properties;
+          const aqhiVal = Number(props.aqhi || props.air_quality_health_index);
+          const badgeEl = el('aqhi-badge');
+          const riskEl = el('aqhi-risk');
+          const statEl = el('aqhi-stat');
 
-      if (lower.includes('primary pollutant') && (lower.includes('pm2.5') || lower.includes('pm 2.5'))) return 'particles';
-      if (lower.includes('primary pollutant') && (lower.includes('ozone') || lower.includes('o₃') || lower.includes('o3'))) return 'ozone';
-      if (lower.includes('primary pollutant') && (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2'))) return 'no2';
-
-      if (lower.includes('pm2.5') || lower.includes('pm 2.5') || lower.includes('fine particles') || lower.includes('particulate matter')) return 'particles';
-      if (lower.includes('ground-level ozone') || lower.includes('ozone (o₃)') || lower.includes('ozone (o3)') || lower.includes('o3 aqi') || lower.includes('ozone')) return 'ozone';
-      if (lower.includes('nitrogen dioxide') || lower.includes('no₂') || lower.includes('no2')) return 'no2';
-
-      return null;
+          if (Number.isFinite(aqhiVal)) {
+            badgeEl.textContent = formatAqhiValue(aqhiVal);
+            riskEl.textContent = aqhiRiskLabel(aqhiVal);
+            statEl.className = `stat air-quality slot-air ${getAqhiClass(aqhiVal)}`;
+          } else {
+            badgeEl.textContent = '—';
+            riskEl.textContent = 'Unavailable';
+          }
+        }
+      } catch (err) {
+        console.error('AQHI load error:', err);
+      }
     }
 
-    function tryInferPollutantByValues(text) {
-      const lower = String(text || '').toLowerCase();
-
-      const pmMatch = lower.match(/pm2\.?5[^0-9]{0,30}([0-9]+(?:\.[0-9]+)?)/i);
-      const o3Match = lower.match(/(?:o₃|o3|ozone)[^0-9]{0,30}([0-9]+(?:\.[0-9]+)?)/i);
-      const no2Match = lower.match(/(?:no₂|no2|nitrogen dioxide)[^0-9]{0,30}([0-9]+(?:\.[0-9]+)?)/i);
-
-      const pm = pmMatch ? parseFloat(pmMatch[1]) : 0;
-      const o3 = o3Match ? parseFloat(o3Match[1]) : 0;
-      const no2 = no2Match ? parseFloat(no2Match[1]) : 0;
-
-      if (pm > o3 && pm > no2 && pm > 0) return 'particles';
-      if (o3 > pm && o3 > no2 && o3 > 0) return 'ozone';
-      if (no2 > pm && no2 > o3 && no2 > 0) return 'no2';
-      return 'unknown';
-    }
+    // Initialize
+    loadWeather();
+    loadAqhi();
+    setInterval(() => {
+      loadWeather();
+      loadAqhi();
+    }, 15 * 60 * 1000);
   </script>
 </body>
 </html>
